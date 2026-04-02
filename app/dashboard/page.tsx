@@ -131,6 +131,14 @@ export default async function DashboardPage() {
             <p className="text-sm text-gray-500">Gestionează valutele</p>
           </div>
         </Link>
+
+        <Link href="/dashboard/upload" className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow flex items-center gap-4">
+          <span className="text-3xl">📂</span>
+          <div>
+            <h3 className="font-semibold text-gray-900">Upload</h3>
+            <p className="text-sm text-gray-500">Importă din CSV / Excel</p>
+          </div>
+        </Link>
       </div>
     </div>
   );
