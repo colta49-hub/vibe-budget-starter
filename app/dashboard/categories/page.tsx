@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { toast } from "sonner";
-import type { Category } from "@/lib/db/schema";
+import type { Category, UserKeyword } from "@/lib/db/schema";
 
 const EMOJI_OPTIONS = [
   "📁", "💰", "💼", "📈", "🎁", "🏆", "🤝",
@@ -23,6 +23,7 @@ export default function CategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [form, setForm] = useState<CategoryForm>({ name: "", type: "expense", icon: "📁" });
   const [saving, setSaving] = useState(false);
+  const [keywordsPanelId, setKeywordsPanelId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCategories();
@@ -117,6 +118,10 @@ export default function CategoriesPage() {
     setShowForm(false);
     setEditingCategory(null);
     setForm({ name: "", type: "expense", icon: "📁" });
+  };
+
+  const toggleKeywordsPanel = (categoryId: string) => {
+    setKeywordsPanelId((prev) => (prev === categoryId ? null : categoryId));
   };
 
   const incomeCategories = categories.filter((c) => c.type === "income");
@@ -237,6 +242,8 @@ export default function CategoriesPage() {
             setForm({ name: "", type: "income", icon: "💰" });
             setShowForm(true);
           }}
+          keywordsPanelId={keywordsPanelId}
+          onToggleKeywords={toggleKeywordsPanel}
         />
         <CategorySection
           title="Cheltuieli"
@@ -248,6 +255,8 @@ export default function CategoriesPage() {
             setForm({ name: "", type: "expense", icon: "📁" });
             setShowForm(true);
           }}
+          keywordsPanelId={keywordsPanelId}
+          onToggleKeywords={toggleKeywordsPanel}
         />
       </div>
     </div>
@@ -261,13 +270,13 @@ interface CategorySectionProps {
   onEdit: (category: Category) => void;
   onDelete: (id: string, isSystem: boolean | null) => void;
   onAdd: () => void;
+  keywordsPanelId: string | null;
+  onToggleKeywords: (id: string) => void;
 }
 
-function CategorySection({ title, type, categories, onEdit, onDelete, onAdd }: CategorySectionProps) {
+function CategorySection({ title, type, categories, onEdit, onDelete, onAdd, keywordsPanelId, onToggleKeywords }: CategorySectionProps) {
   const isIncome = type === "income";
-  const badgeClass = isIncome
-    ? "bg-green-100 text-green-700"
-    : "bg-red-100 text-red-700";
+  const badgeClass = isIncome ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700";
   const titleClass = isIncome ? "text-green-700" : "text-red-700";
 
   return (
@@ -295,56 +304,197 @@ function CategorySection({ title, type, categories, onEdit, onDelete, onAdd }: C
         </div>
       ) : (
         <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-50">
-              <th className="text-left text-sm font-medium text-gray-500 px-6 py-4 w-16">Icon</th>
-              <th className="text-left text-sm font-medium text-gray-500 px-6 py-4">Nume</th>
-              <th className="text-right text-sm font-medium text-gray-500 px-6 py-4 w-40">Acțiuni</th>
-            </tr>
-          </thead>
-          <tbody>
-            {categories.map((category) => (
-              <tr key={category.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                <td className="px-6 py-4 w-16">
-                  <span className="text-2xl">{category.icon || "📁"}</span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-900">{category.name}</span>
-                    {category.isSystemCategory && (
-                      <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
-                        SISTEM
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-right w-40">
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => onEdit(category)}
-                      className="border border-gray-300 hover:bg-gray-50 text-gray-700 px-3 py-1 rounded-lg text-sm transition-colors"
-                    >
-                      Editează
-                    </button>
-                    <button
-                      onClick={() => onDelete(category.id, category.isSystemCategory)}
-                      disabled={category.isSystemCategory ?? false}
-                      className={`px-3 py-1 rounded-lg text-sm transition-colors ${
-                        category.isSystemCategory
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : "bg-red-500 hover:bg-red-600 text-white"
-                      }`}
-                    >
-                      Șterge
-                    </button>
-                  </div>
-                </td>
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-50">
+                <th className="text-left text-sm font-medium text-gray-500 px-6 py-4 w-16">Icon</th>
+                <th className="text-left text-sm font-medium text-gray-500 px-6 py-4">Nume</th>
+                <th className="text-right text-sm font-medium text-gray-500 px-6 py-4 w-52">Acțiuni</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {categories.map((category) => (
+                <Fragment key={category.id}>
+                  <tr className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4 w-16">
+                      <span className="text-2xl">{category.icon || "📁"}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-900">{category.name}</span>
+                        {category.isSystemCategory && (
+                          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                            SISTEM
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right w-52">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => onToggleKeywords(category.id)}
+                          className="border border-teal-300 hover:bg-teal-50 text-teal-700 px-3 py-1 rounded-lg text-sm transition-colors"
+                        >
+                          🔑 Keywords
+                        </button>
+                        <button
+                          onClick={() => onEdit(category)}
+                          className="border border-gray-300 hover:bg-gray-50 text-gray-700 px-3 py-1 rounded-lg text-sm transition-colors"
+                        >
+                          Editează
+                        </button>
+                        <button
+                          onClick={() => onDelete(category.id, category.isSystemCategory)}
+                          disabled={category.isSystemCategory ?? false}
+                          className={`px-3 py-1 rounded-lg text-sm transition-colors ${
+                            category.isSystemCategory
+                              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                              : "bg-red-500 hover:bg-red-600 text-white"
+                          }`}
+                        >
+                          Șterge
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  {keywordsPanelId === category.id && (
+                    <tr>
+                      <td colSpan={3} className="px-6 py-4 bg-teal-50/50 border-b border-gray-100">
+                        <KeywordsPanel categoryId={category.id} categoryName={category.name} />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
         </div>
+      )}
+    </div>
+  );
+}
+
+interface KeywordsPanelProps {
+  categoryId: string;
+  categoryName: string;
+}
+
+function KeywordsPanel({ categoryId, categoryName }: KeywordsPanelProps) {
+  const [keywords, setKeywords] = useState<UserKeyword[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newKeyword, setNewKeyword] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetchKeywords();
+  }, [categoryId]);
+
+  const fetchKeywords = async () => {
+    try {
+      const res = await fetch(`/api/keywords?categoryId=${categoryId}`);
+      const data = await res.json();
+      setKeywords(data.keywords || []);
+    } catch {
+      toast.error("Eroare la încărcarea keyword-urilor.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newKeyword.trim()) return;
+    setSaving(true);
+
+    try {
+      const res = await fetch("/api/keywords", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keyword: newKeyword, categoryId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || "Eroare la salvare.");
+        return;
+      }
+
+      setKeywords((prev) => [...prev, data.keyword]);
+      setNewKeyword("");
+      toast.success(`Keyword "${newKeyword.trim().toLowerCase()}" adăugat!`);
+    } catch {
+      toast.error("Eroare de conexiune.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string, keyword: string) => {
+    try {
+      const res = await fetch(`/api/keywords/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        toast.error("Eroare la ștergere.");
+        return;
+      }
+      setKeywords((prev) => prev.filter((k) => k.id !== id));
+      toast.success(`Keyword "${keyword}" șters.`);
+    } catch {
+      toast.error("Eroare de conexiune.");
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-medium text-teal-800">
+        Keywords pentru auto-categorizare — <span className="font-semibold">{categoryName}</span>
+      </p>
+      <p className="text-xs text-teal-600">
+        Dacă descrierea unei tranzacții conține unul din aceste cuvinte, va fi categorizată automat.
+      </p>
+
+      {loading ? (
+        <p className="text-sm text-gray-400">Se încarcă...</p>
+      ) : (
+        <>
+          {keywords.length === 0 ? (
+            <p className="text-sm text-gray-400 italic">Niciun keyword adăugat încă.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {keywords.map((kw) => (
+                <span
+                  key={kw.id}
+                  className="flex items-center gap-1 bg-white border border-teal-200 text-teal-800 text-sm px-3 py-1 rounded-full"
+                >
+                  {kw.keyword}
+                  <button
+                    onClick={() => handleDelete(kw.id, kw.keyword)}
+                    className="text-teal-400 hover:text-red-500 ml-1 font-bold leading-none transition-colors"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          <form onSubmit={handleAdd} className="flex gap-2 mt-1">
+            <input
+              type="text"
+              value={newKeyword}
+              onChange={(e) => setNewKeyword(e.target.value)}
+              placeholder='Ex: "aliexpress", "tesco", "uber"'
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            />
+            <button
+              type="submit"
+              disabled={saving || !newKeyword.trim()}
+              className="bg-teal-600 hover:bg-teal-700 disabled:bg-teal-300 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
+            >
+              {saving ? "..." : "Adaugă"}
+            </button>
+          </form>
+        </>
       )}
     </div>
   );

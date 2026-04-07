@@ -201,6 +201,35 @@ export default function TransactionsPage() {
     .filter((t) => !filterDateFrom || t.date >= filterDateFrom)
     .filter((t) => !filterDateTo || t.date <= filterDateTo);
 
+  const totalVenituri = filtered.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
+  const totalCheltuieli = filtered.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+  const sold = totalVenituri - totalCheltuieli;
+
+  const setFiscalYear = (year: number) => {
+    setFilterDateFrom(`${year}-04-06`);
+    setFilterDateTo(`${year + 1}-04-05`);
+  };
+
+  const exportCSV = () => {
+    const header = ["Data", "Descriere", "Categorie", "Banca", "Suma", "Valuta"];
+    const rows = filtered.map((t) => [
+      t.date,
+      `"${t.description.replace(/"/g, '""')}"`,
+      t.categoryName || "",
+      t.bankName || "",
+      t.amount.toFixed(2),
+      t.currency,
+    ]);
+    const csv = [header, ...rows].map((r) => r.join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `tranzactii-${filterDateFrom || "toate"}-${filterDateTo || ""}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -226,6 +255,20 @@ export default function TransactionsPage() {
 
       {/* Filtre */}
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-6">
+        {/* Shortcut-uri an fiscal UK */}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <span className="text-xs text-gray-500 font-medium">An fiscal UK:</span>
+          {[2022, 2023, 2024].map((y) => (
+            <button
+              key={y}
+              onClick={() => setFiscalYear(y)}
+              className="text-xs border border-teal-300 hover:bg-teal-50 text-teal-700 px-3 py-1 rounded-full transition-colors"
+            >
+              {y}/{y + 1}
+            </button>
+          ))}
+          <span className="text-xs text-gray-400 ml-1">(6 Apr — 5 Apr)</span>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <input
             type="text"
@@ -526,6 +569,40 @@ export default function TransactionsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Sumar + Export */}
+      {filtered.length > 0 && (
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-5 mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap gap-6">
+              <div>
+                <p className="text-xs text-gray-500 mb-0.5">Venituri</p>
+                <p className="text-lg font-bold" style={{ color: "#16a34a" }}>+£{totalVenituri.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-0.5">Cheltuieli</p>
+                <p className="text-lg font-bold" style={{ color: "#ef4444" }}>-£{totalCheltuieli.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-0.5">Sold net</p>
+                <p className="text-lg font-bold" style={{ color: sold >= 0 ? "#16a34a" : "#ef4444" }}>
+                  {sold >= 0 ? "+" : ""}£{sold.toFixed(2)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-0.5">Tranzacții</p>
+                <p className="text-lg font-bold text-gray-900">{filtered.length}</p>
+              </div>
+            </div>
+            <button
+              onClick={exportCSV}
+              className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+            >
+              📥 Exportă CSV
+            </button>
           </div>
         </div>
       )}

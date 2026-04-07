@@ -25,6 +25,11 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
+  const currencySymbol = (code: string) => {
+    const map: Record<string, string> = { GBP: "£", EUR: "€", USD: "$", RON: "RON", MDL: "MDL" };
+    return map[code] ?? code;
+  };
+
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
@@ -75,7 +80,7 @@ export default async function DashboardPage() {
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">
           <p className="text-sm text-gray-500 font-medium">Venituri {currentMonth}</p>
           <p className="text-3xl font-bold text-teal-600 mt-2">
-            +{totalIncome.toFixed(2)} {user.nativeCurrency}
+            {currencySymbol(user.nativeCurrency)}{totalIncome.toFixed(2)}
           </p>
           <p className="text-xs text-gray-400 mt-1">luna curentă</p>
         </div>
@@ -83,7 +88,7 @@ export default async function DashboardPage() {
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">
           <p className="text-sm text-gray-500 font-medium">Cheltuieli {currentMonth}</p>
           <p className="text-3xl font-bold text-orange-500 mt-2">
-            -{totalExpenses.toFixed(2)} {user.nativeCurrency}
+            -{currencySymbol(user.nativeCurrency)}{totalExpenses.toFixed(2)}
           </p>
           <p className="text-xs text-gray-400 mt-1">luna curentă</p>
         </div>
