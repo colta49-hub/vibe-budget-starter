@@ -94,7 +94,7 @@ export default function UploadPage() {
         date: tx.date,
         description: tx.description,
         amount: tx.amount,
-        currency: tx.currency || "RON",
+        currency: tx.currency || "GBP",
       }));
 
       const res = await fetch("/api/transactions/import", {

@@ -93,7 +93,7 @@ export async function parseCSV(file: File): Promise<ParseResult> {
                   date: formatDate(date),
                   description: description.trim(),
                   amount: parseFloat(amount),
-                  currency: currency || "RON",
+                  currency: currency || "GBP",
                   type: parseFloat(amount) < 0 ? "debit" : "credit",
                   originalData: row, // Păstrăm datele originale
                 });
@@ -197,7 +197,7 @@ export async function parseExcel(file: File): Promise<ParseResult> {
                 date: formatDate(date),
                 description: description.trim(),
                 amount: parseFloat(amount),
-                currency: currency || "RON",
+                currency: currency || "GBP",
                 type: parseFloat(amount) < 0 ? "debit" : "credit",
                 originalData: row,
               });
@@ -321,7 +321,38 @@ function detectDescription(row: any): string | null {
 }
 
 function detectAmount(row: any): string | null {
-  // Adăugăm "sumă" cu diacritice pentru Revolut România
+  // PRIORITATE 1: Format HSBC/ING cu coloane separate "Debit Amount" / "Credit Amount"
+  // Debit = cheltuială (negativ), Credit = venit (pozitiv)
+  let debitValue: string | null = null;
+  let creditValue: string | null = null;
+
+  for (const key of Object.keys(row)) {
+    const lowerKey = key.toLowerCase().trim();
+    if (lowerKey.includes("debit")) {
+      debitValue = row[key];
+    }
+    if (lowerKey.includes("credit")) {
+      creditValue = row[key];
+    }
+  }
+
+  // Dacă există ambele coloane (chiar dacă una e goală) → format Debit/Credit
+  if (debitValue !== null && creditValue !== null) {
+    const debitStr = String(debitValue ?? "").trim();
+    const creditStr = String(creditValue ?? "").trim();
+    if (debitStr !== "" && parseFloat(debitStr) > 0) {
+      console.log('[detectAmount] HSBC Debit Amount:', debitStr);
+      return `-${debitStr}`;
+    }
+    if (creditStr !== "" && parseFloat(creditStr) > 0) {
+      console.log('[detectAmount] HSBC Credit Amount:', creditStr);
+      return creditStr;
+    }
+    // Ambele goale — rând invalid
+    return null;
+  }
+
+  // PRIORITATE 2: Coloană unică cu suma (Revolut, format generic)
   // NOTĂ: Excel exportă "SumÄ" (Ä = A-umlaut) în loc de "Sumă" (Ă = A-breve)
   // RUSSIAN: "Сумма" (Amount)
   const amountKeys = [
@@ -329,45 +360,13 @@ function detectAmount(row: any): string | null {
     "сумма", // Russian: amount
   ];
 
-  // Căutăm o coloană cu suma
   for (const key of Object.keys(row)) {
-    // Normalizăm: lowercase + trim spații invizibile
     const normalizedKey = key.toLowerCase().trim();
-
-    // DEBUG: Verificăm fiecare cheie
     const matches = amountKeys.filter(k => normalizedKey.includes(k));
     if (matches.length > 0) {
-      console.log('[detectAmount] ✅ MATCH! Key:', `"${key}"`, '→ normalized:', `"${normalizedKey}"`, '→ matched:', matches);
+      console.log('[detectAmount] ✅ MATCH! Key:', `"${key}"`, '→ matched:', matches);
       return row[key];
     }
-  }
-
-  // Dacă nu găsim, verificăm dacă există coloane separate Debit/Credit (format ING)
-  const debitKeys = ["debit"];
-  const creditKeys = ["credit"];
-
-  let debitValue: string | null = null;
-  let creditValue: string | null = null;
-
-  for (const key of Object.keys(row)) {
-    const lowerKey = key.toLowerCase();
-    if (debitKeys.some((k) => lowerKey.includes(k))) {
-      debitValue = row[key];
-    }
-    if (creditKeys.some((k) => lowerKey.includes(k))) {
-      creditValue = row[key];
-    }
-  }
-
-  // Dacă avem Debit/Credit, returnăm valoarea care nu e goală
-  // Debit = negativ (cheltuială), Credit = pozitiv (venit)
-  if (debitValue && debitValue.trim() !== "") {
-    console.log('[detectAmount] Found debit value:', debitValue);
-    return `-${debitValue}`;
-  }
-  if (creditValue && creditValue.trim() !== "") {
-    console.log('[detectAmount] Found credit value:', creditValue);
-    return creditValue;
   }
 
   console.warn('[detectAmount] No amount found in row:', Object.keys(row));
