@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { seedDefaultCategories } from "@/lib/auto-categorization/seed-categories";
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,6 +11,9 @@ export async function GET(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    // Dacă userul nu are nicio categorie, creăm automat cele 12 predefinite
+    await seedDefaultCategories(user.id);
 
     const categories = await db
       .select()

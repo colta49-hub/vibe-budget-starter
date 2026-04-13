@@ -35,6 +35,9 @@ export default function DashboardLayout({
               <Link href="/dashboard/upload" className="text-xs text-gray-600 hover:text-teal-600 font-medium transition-colors">
                 Upload
               </Link>
+              <Link href="/dashboard/reports" className="text-xs text-gray-600 hover:text-teal-600 font-medium transition-colors">
+                Rapoarte
+              </Link>
             </div>
 
             <LogoutButton />

@@ -253,6 +253,34 @@ export default function TransactionsPage() {
         </button>
       </div>
 
+      {/* Filtrare rapidă per bancă */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <button
+          onClick={() => setFilterBank("")}
+          className="px-4 py-2 rounded-full text-sm font-medium transition-colors"
+          style={!filterBank ? { backgroundColor: "#0d9488", color: "#fff" } : { backgroundColor: "#f1f5f9", color: "#475569" }}
+        >
+          Toate băncile
+        </button>
+        {banks.map((b) => (
+          <button
+            key={b.id}
+            onClick={() => setFilterBank(filterBank === b.id ? "" : b.id)}
+            className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors"
+            style={filterBank === b.id
+              ? { backgroundColor: b.color || "#6366f1", color: "#fff" }
+              : { backgroundColor: "#f1f5f9", color: "#475569" }
+            }
+          >
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: b.color || "#6366f1" }}
+            />
+            {b.name}
+          </button>
+        ))}
+      </div>
+
       {/* Filtre */}
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-6">
         {/* Shortcut-uri an fiscal UK */}
