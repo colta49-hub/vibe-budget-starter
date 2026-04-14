@@ -19,8 +19,16 @@ interface TransactionRow {
 // Ani fiscali disponibili (2022 → 2030)
 const FISCAL_YEARS = Array.from({ length: 2030 - 2022 + 1 }, (_, i) => 2022 + i);
 
-// Generează lunile unui an fiscal UK: 6 apr year → 5 apr (year+1)
-// Returnează ["year-04", "year-05", ..., "year-12", "(year+1)-01", ..., "(year+1)-03"]
+// Date exacte an fiscal UK
+function getFiscalDateRange(startYear: number): { startDate: string; endDate: string } {
+  return {
+    startDate: `${startYear}-04-06`,
+    endDate: `${startYear + 1}-04-05`,
+  };
+}
+
+// Generează lunile afișate în tabel — coloana Apr arată "6 apr → 30 apr", restul întregi
+// Returnează YYYY-MM în ordine: Apr(startYear)...Mar(startYear+1) + Apr(startYear+1) dacă e nevoie
 function getFiscalYearMonths(startYear: number): string[] {
   const months: string[] = [];
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -79,18 +87,20 @@ export default function PivotPage() {
   }, []);
 
   const months = useMemo(() => getFiscalYearMonths(fiscalYear), [fiscalYear]);
+  const { startDate, endDate } = useMemo(() => getFiscalDateRange(fiscalYear), [fiscalYear]);
 
   // Construiește matricea: pivot[categorie][luna] = { cheltuieli, count }
+  // Filtrare exactă după 6 apr → 5 apr (nu după lună)
   // Reținem și icon-ul per categorie
   const { pivot, categories, categoryMeta } = useMemo(() => {
     const pivotMap: Record<string, Record<string, { cheltuieli: number; count: number }>> = {};
     const metaMap: Record<string, { icon: string | null; type: string | null }> = {};
-    const monthSet = new Set(months);
 
     for (const t of transactions) {
-      const ym = t.date.slice(0, 7);
-      if (!monthSet.has(ym)) continue;
+      // Filtru exact după data fiscală
+      if (t.date < startDate || t.date > endDate) continue;
       if (t.amount >= 0) continue; // doar cheltuieli
+      const ym = t.date.slice(0, 7);
 
       const cat = t.categoryName || "Necategorizat";
       if (!metaMap[cat]) {
@@ -114,7 +124,7 @@ export default function PivotPage() {
     });
 
     return { pivot: pivotMap, categories: cats, categoryMeta: metaMap };
-  }, [transactions, months]);
+  }, [transactions, months, startDate, endDate]);
 
   // Media per categorie (pentru heat map)
   const categoryMeans = useMemo(() => {
