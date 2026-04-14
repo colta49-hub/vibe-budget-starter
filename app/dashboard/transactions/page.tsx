@@ -304,7 +304,7 @@ export default function TransactionsPage() {
         {/* Shortcut-uri an fiscal UK */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <span className="text-xs text-gray-500 font-medium">An fiscal UK:</span>
-          {[2022, 2023, 2024].map((y) => (
+          {Array.from({ length: new Date().getFullYear() - 2022 + 1 }, (_, i) => 2022 + i).map((y) => (
             <button
               key={y}
               onClick={() => setFiscalYear(y)}
