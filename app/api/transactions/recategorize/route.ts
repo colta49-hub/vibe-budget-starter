@@ -12,19 +12,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Ia toate tranzacțiile fără categorie
+    // Ia TOATE tranzacțiile userului (nu doar cele fără categorie)
     const uncategorized = await db
       .select({ id: schema.transactions.id, description: schema.transactions.description, amount: schema.transactions.amount })
       .from(schema.transactions)
-      .where(
-        and(
-          eq(schema.transactions.userId, user.id),
-          isNull(schema.transactions.categoryId)
-        )
-      );
+      .where(eq(schema.transactions.userId, user.id));
 
     if (uncategorized.length === 0) {
-      return NextResponse.json({ success: true, updated: 0, message: "Toate tranzacțiile sunt deja categorizate." });
+      return NextResponse.json({ success: true, updated: 0, message: "Nu există tranzacții." });
     }
 
     let updated = 0;
