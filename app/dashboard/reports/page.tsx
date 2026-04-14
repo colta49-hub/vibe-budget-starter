@@ -257,8 +257,12 @@ export default function ReportsPage() {
       const y = Number(period.replace("fiscal-", ""));
       const pad = (n: number) => String(n).padStart(2, "0");
       const ms: string[] = [];
+      // Apr(y) → Dec(y)
       for (let m = 4; m <= 12; m++) ms.push(`${y}-${pad(m)}`);
+      // Ian(y+1) → Mar(y+1)
       for (let m = 1; m <= 3; m++) ms.push(`${y + 1}-${pad(m)}`);
+      // Apr(y+1) — ultima lună fiscală, doar 1-5 apr
+      ms.push(`${y + 1}-04`);
       return ms;
     }
     return Array.from(new Set(filtered.map((t) => t.date.slice(0, 7)))).sort();

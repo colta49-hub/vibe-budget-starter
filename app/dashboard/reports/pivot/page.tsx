@@ -32,14 +32,16 @@ function getFiscalDateRange(startYear: number): { startDate: string; endDate: st
 function getFiscalYearMonths(startYear: number): string[] {
   const months: string[] = [];
   const pad = (n: number) => String(n).padStart(2, "0");
-  // Apr → Dec din startYear
+  // Apr(startYear) → Dec(startYear)
   for (let m = 4; m <= 12; m++) {
     months.push(`${startYear}-${pad(m)}`);
   }
-  // Ian → Mar din startYear+1
+  // Ian(startYear+1) → Mar(startYear+1)
   for (let m = 1; m <= 3; m++) {
     months.push(`${startYear + 1}-${pad(m)}`);
   }
+  // Apr(startYear+1) — ultima lună fiscală, doar 1-5 apr
+  months.push(`${startYear + 1}-04`);
   return months;
 }
 
