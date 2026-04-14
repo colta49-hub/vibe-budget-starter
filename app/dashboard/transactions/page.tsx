@@ -237,12 +237,16 @@ export default function TransactionsPage() {
     const totalVenituri = filtered.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
     const totalCheltuieli = filtered.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
     const soldNet = totalVenituri - totalCheltuieli;
+    // Valuta majoritară din tranzacțiile filtrate
+    const currencyCount: Record<string, number> = {};
+    filtered.forEach((t) => { currencyCount[t.currency] = (currencyCount[t.currency] || 0) + 1; });
+    const dominantCurrency = Object.entries(currencyCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "RON";
     const summary = [
       [],
       ["SUMAR", "", "", "", "", ""],
-      ["Total venituri", "", "", "", totalVenituri.toFixed(2), "GBP"],
-      ["Total cheltuieli", "", "", "", `-${totalCheltuieli.toFixed(2)}`, "GBP"],
-      ["Sold net", "", "", "", soldNet.toFixed(2), "GBP"],
+      ["Total venituri", "", "", "", totalVenituri.toFixed(2), dominantCurrency],
+      ["Total cheltuieli", "", "", "", `-${totalCheltuieli.toFixed(2)}`, dominantCurrency],
+      ["Sold net", "", "", "", soldNet.toFixed(2), dominantCurrency],
     ];
     const csv = [header, ...rows, ...summary].map((r) => r.join(",")).join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
@@ -297,19 +301,23 @@ export default function TransactionsPage() {
     const totalVenituri = filtered.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
     const totalCheltuieli = filtered.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
     const soldNet = totalVenituri - totalCheltuieli;
+    // Valuta majoritară din tranzacțiile filtrate
+    const currencyCount: Record<string, number> = {};
+    filtered.forEach((t) => { currencyCount[t.currency] = (currencyCount[t.currency] || 0) + 1; });
+    const dominantCurrency = Object.entries(currencyCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "RON";
 
     sheet.addRow([]);
-    const r1 = sheet.addRow(["Total venituri", "", "", "", totalVenituri, "GBP"]);
+    const r1 = sheet.addRow(["Total venituri", "", "", "", totalVenituri, dominantCurrency]);
     r1.getCell(1).font = { bold: true };
     r1.getCell(5).font = { bold: true, color: { argb: "FF16A34A" } };
 
-    const r2 = sheet.addRow(["Total cheltuieli", "", "", "", -totalCheltuieli, "GBP"]);
+    const r2 = sheet.addRow(["Total cheltuieli", "", "", "", -totalCheltuieli, dominantCurrency]);
     r2.getCell(1).font = { bold: true };
     r2.getCell(5).font = { bold: true, color: { argb: "FFEF4444" } };
 
-    const r3 = sheet.addRow(["Sold net", "", "", "", soldNet, "GBP"]);
+    const r3 = sheet.addRow(["Sold net", "", "", "", soldNet, dominantCurrency]);
     r3.getCell(1).font = { bold: true };
-    r3.getCell(5).font = { bold: true, color: { argb: soldNet >= 0 ? "FF16A34A" : "FFEF4444" } };
+    r3.getCell(5).font = { bold: true, color: { argb: "FF2563EB" } }; // albastru pentru sold net
 
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
