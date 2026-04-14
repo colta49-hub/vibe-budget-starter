@@ -81,11 +81,11 @@ function getDateRange(period: Period): { startDate: string; endDate: string } {
   };
 }
 
-// Label cu linie de conexiune pe pie chart
+// Label mare (pie general) — nume + procent cu linie
 const renderCustomLabel = ({
   cx, cy, midAngle, outerRadius, name, percent,
 }: PieLabelRenderProps) => {
-  if ((percent as number) < 0.03) return null; // ascunde feliile prea mici
+  if ((percent as number) < 0.03) return null;
   const RADIAN = Math.PI / 180;
   const cxN = cx as number;
   const cyN = cy as number;
@@ -105,31 +105,43 @@ const renderCustomLabel = ({
 
   return (
     <g>
-      <path
-        d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`}
-        stroke="#9ca3af"
-        fill="none"
-        strokeWidth={1}
-      />
+      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke="#9ca3af" fill="none" strokeWidth={1} />
       <circle cx={ex} cy={ey} r={2} fill="#9ca3af" />
-      <text
-        x={ex + (cos >= 0 ? 4 : -4)}
-        y={ey}
-        textAnchor={textAnchor}
-        fill="#374151"
-        fontSize={11}
-        fontWeight={500}
-      >
+      <text x={ex + (cos >= 0 ? 4 : -4)} y={ey} textAnchor={textAnchor} fill="#374151" fontSize={11} fontWeight={500}>
         {name}
       </text>
-      <text
-        x={ex + (cos >= 0 ? 4 : -4)}
-        y={ey + 13}
-        textAnchor={textAnchor}
-        fill="#6b7280"
-        fontSize={10}
-      >
+      <text x={ex + (cos >= 0 ? 4 : -4)} y={ey + 13} textAnchor={textAnchor} fill="#6b7280" fontSize={10}>
         {`${(pct * 100).toFixed(1)}%`}
+      </text>
+    </g>
+  );
+};
+
+// Label mic (pie lunar) — doar procent, fără nume (spațiu limitat)
+const renderSmallLabel = ({
+  cx, cy, midAngle, outerRadius, percent,
+}: PieLabelRenderProps) => {
+  if ((percent as number) < 0.08) return null;
+  const RADIAN = Math.PI / 180;
+  const cxN = cx as number;
+  const cyN = cy as number;
+  const outerR = outerRadius as number;
+  const angle = midAngle as number;
+  const pct = percent as number;
+
+  const sin = Math.sin(-RADIAN * angle);
+  const cos = Math.cos(-RADIAN * angle);
+  const sx = cxN + (outerR + 4) * cos;
+  const sy = cyN + (outerR + 4) * sin;
+  const ex = cxN + (outerR + 20) * cos;
+  const ey = cyN + (outerR + 20) * sin;
+  const textAnchor = cos >= 0 ? "start" : "end";
+
+  return (
+    <g>
+      <line x1={sx} y1={sy} x2={ex} y2={ey} stroke="#9ca3af" strokeWidth={1} />
+      <text x={ex + (cos >= 0 ? 3 : -3)} y={ey + 4} textAnchor={textAnchor} fill="#6b7280" fontSize={9}>
+        {`${(pct * 100).toFixed(0)}%`}
       </text>
     </g>
   );
@@ -238,11 +250,37 @@ export default function ReportsPage() {
       total: parseFloat(total.toFixed(2)),
     }));
 
-  // Date pie chart per lună
-  const allMonths = Array.from(new Set(filtered.map((t) => t.date.slice(0, 7)))).sort();
-  const piePerMonth = allMonths.map((ym) => {
-    const monthExpenses = expenses.filter((t) => t.date.startsWith(ym));
-    const monthIncome = income.filter((t) => t.date.startsWith(ym));
+  // Date pie chart per lună — 12 luni fiscale fixe (Apr startYear → Mar startYear+1)
+  // Pentru perioade non-fiscale, folosim lunile din tranzacții
+  const fiscalMonths: string[] = (() => {
+    if (period.startsWith("fiscal-")) {
+      const y = Number(period.replace("fiscal-", ""));
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const ms: string[] = [];
+      for (let m = 4; m <= 12; m++) ms.push(`${y}-${pad(m)}`);
+      for (let m = 1; m <= 3; m++) ms.push(`${y + 1}-${pad(m)}`);
+      return ms;
+    }
+    return Array.from(new Set(filtered.map((t) => t.date.slice(0, 7)))).sort();
+  })();
+
+  const piePerMonth = fiscalMonths.map((ym) => {
+    // Filtru exact pentru prima și ultima lună fiscală
+    const isFirstFiscalMonth = period.startsWith("fiscal-") && ym.endsWith("-04") && ym === startDate.slice(0, 7);
+    const isLastFiscalMonth = period.startsWith("fiscal-") && ym.endsWith("-04") && ym === endDate.slice(0, 7);
+
+    const monthExpenses = expenses.filter((t) => {
+      if (!t.date.startsWith(ym)) return false;
+      if (isFirstFiscalMonth && t.date < startDate) return false;
+      if (isLastFiscalMonth && t.date > endDate) return false;
+      return true;
+    });
+    const monthIncome = income.filter((t) => {
+      if (!t.date.startsWith(ym)) return false;
+      if (isFirstFiscalMonth && t.date < startDate) return false;
+      if (isLastFiscalMonth && t.date > endDate) return false;
+      return true;
+    });
     const catMap = monthExpenses.reduce((acc, t) => {
       const key = t.categoryName || "Necategorizat";
       acc[key] = (acc[key] || 0) + Math.abs(t.amount);
@@ -487,15 +525,15 @@ export default function ReportsPage() {
                   </div>
                 </div>
                 <ResponsiveContainer width="100%" height={260}>
-                  <PieChart margin={{ top: 10, right: 40, bottom: 10, left: 40 }}>
+                  <PieChart margin={{ top: 15, right: 30, bottom: 15, left: 30 }}>
                     <Pie
                       data={data}
                       cx="50%"
                       cy="50%"
-                      outerRadius={80}
+                      outerRadius={75}
                       innerRadius={25}
                       dataKey="value"
-                      label={renderCustomLabel}
+                      label={data.length > 0 ? renderSmallLabel : undefined}
                       labelLine={false}
                     >
                       {data.map((_, index) => (
