@@ -38,6 +38,9 @@ export default function DashboardLayout({
               <Link href="/dashboard/reports" className="text-xs text-gray-600 hover:text-teal-600 font-medium transition-colors">
                 Rapoarte
               </Link>
+              <Link href="/dashboard/reports/pivot" className="text-xs text-gray-600 hover:text-teal-600 font-medium transition-colors">
+                Pivot
+              </Link>
             </div>
 
             <LogoutButton />

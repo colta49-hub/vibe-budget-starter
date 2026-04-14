@@ -47,9 +47,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!type || (type !== "income" && type !== "expense")) {
+    if (!type || (type !== "income" && type !== "expense" && type !== "transfer")) {
       return NextResponse.json(
-        { error: "Tipul categoriei trebuie să fie 'income' sau 'expense'" },
+        { error: "Tipul categoriei trebuie să fie 'income', 'expense' sau 'transfer'" },
         { status: 400 }
       );
     }

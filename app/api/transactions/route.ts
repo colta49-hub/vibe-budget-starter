@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
         bankColor: schema.banks.color,
         categoryName: schema.categories.name,
         categoryIcon: schema.categories.icon,
+        categoryType: schema.categories.type,
       })
       .from(schema.transactions)
       .leftJoin(schema.banks, eq(schema.transactions.bankId, schema.banks.id))

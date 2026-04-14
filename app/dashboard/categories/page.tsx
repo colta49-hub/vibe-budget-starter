@@ -5,14 +5,27 @@ import { toast } from "sonner";
 import type { Category, UserKeyword } from "@/lib/db/schema";
 
 const EMOJI_OPTIONS = [
+  // General
   "📁", "💰", "💼", "📈", "🎁", "🏆", "🤝",
+  // Mâncare & Transport
   "🍔", "🚗", "🏠", "🎮", "📱", "✈️", "🛒",
+  // Sănătate & Educație
   "🏥", "📚", "💊", "🎬", "🐾",
+  // Shopping online
+  "🛍️", "📦", "🛕",
+  // Salon & Business
+  "💅", "🧴", "💉", "🏪", "🧹", "📋", "💻", "⚡",
+  // Timp & Abonamente
+  "📅", "🔁", "⏰", "🗓️",
+  // Transferuri & Finanțe
+  "🔄", "↔️", "💵", "🏛️", "📲",
+  // Diverse
+  "🗑️", "🌐", "📞", "🎯", "🔑",
 ];
 
 interface CategoryForm {
   name: string;
-  type: "income" | "expense";
+  type: "income" | "expense" | "transfer";
   icon: string;
 }
 
@@ -85,12 +98,12 @@ export default function CategoriesPage() {
   };
 
   const handleDelete = async (id: string, isSystem: boolean | null) => {
-    if (isSystem) {
-      toast.error("Categoriile sistem nu pot fi șterse.");
-      return;
-    }
-
-    if (!confirm("Ești sigur că vrei să ștergi această categorie?")) return;
+    const confirmed = window.confirm(
+      isSystem
+        ? "Aceasta e o categorie de sistem. Ești sigur că vrei să o ștergi?"
+        : "Ștergi această categorie?"
+    );
+    if (!confirmed) return;
 
     try {
       const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
@@ -110,7 +123,7 @@ export default function CategoriesPage() {
 
   const handleEdit = (category: Category) => {
     setEditingCategory(category);
-    setForm({ name: category.name, type: category.type as "income" | "expense", icon: category.icon || "📁" });
+    setForm({ name: category.name, type: category.type as "income" | "expense" | "transfer", icon: category.icon || "📁" });
     setShowForm(true);
   };
 
@@ -126,6 +139,7 @@ export default function CategoriesPage() {
 
   const incomeCategories = categories.filter((c) => c.type === "income");
   const expenseCategories = categories.filter((c) => c.type === "expense");
+  const transferCategories = categories.filter((c) => c.type === "transfer");
 
   if (loading) {
     return (
@@ -179,11 +193,12 @@ export default function CategoriesPage() {
                 </label>
                 <select
                   value={form.type}
-                  onChange={(e) => setForm({ ...form, type: e.target.value as "income" | "expense" })}
+                  onChange={(e) => setForm({ ...form, type: e.target.value as "income" | "expense" | "transfer" })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
                   <option value="income">💚 Venit (Income)</option>
                   <option value="expense">🔴 Cheltuială (Expense)</option>
+                  <option value="transfer">🔄 Transfer</option>
                 </select>
               </div>
             )}
@@ -258,6 +273,19 @@ export default function CategoriesPage() {
           keywordsPanelId={keywordsPanelId}
           onToggleKeywords={toggleKeywordsPanel}
         />
+        <CategorySection
+          title="Transferuri"
+          type="transfer"
+          categories={transferCategories}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onAdd={() => {
+            setForm({ name: "", type: "transfer", icon: "🔄" });
+            setShowForm(true);
+          }}
+          keywordsPanelId={keywordsPanelId}
+          onToggleKeywords={toggleKeywordsPanel}
+        />
       </div>
     </div>
   );
@@ -265,7 +293,7 @@ export default function CategoriesPage() {
 
 interface CategorySectionProps {
   title: string;
-  type: "income" | "expense";
+  type: "income" | "expense" | "transfer";
   categories: Category[];
   onEdit: (category: Category) => void;
   onDelete: (id: string, isSystem: boolean | null) => void;
@@ -276,8 +304,9 @@ interface CategorySectionProps {
 
 function CategorySection({ title, type, categories, onEdit, onDelete, onAdd, keywordsPanelId, onToggleKeywords }: CategorySectionProps) {
   const isIncome = type === "income";
-  const badgeClass = isIncome ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700";
-  const titleClass = isIncome ? "text-green-700" : "text-red-700";
+  const isTransfer = type === "transfer";
+  const badgeClass = isIncome ? "bg-green-100 text-green-700" : isTransfer ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700";
+  const titleClass = isIncome ? "text-green-700" : isTransfer ? "text-blue-700" : "text-red-700";
 
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden">
@@ -329,30 +358,28 @@ function CategorySection({ title, type, categories, onEdit, onDelete, onAdd, key
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-right w-52">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="px-6 py-4 text-right w-40">
+                      <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => onToggleKeywords(category.id)}
-                          className="border border-teal-300 hover:bg-teal-50 text-teal-700 px-3 py-1 rounded-lg text-sm transition-colors"
+                          title="Keywords"
+                          className="p-1.5 rounded-lg hover:bg-teal-50 text-teal-600 transition-colors text-base"
                         >
-                          🔑 Keywords
+                          🔑
                         </button>
                         <button
                           onClick={() => onEdit(category)}
-                          className="border border-gray-300 hover:bg-gray-50 text-gray-700 px-3 py-1 rounded-lg text-sm transition-colors"
+                          title="Editează"
+                          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
                         >
-                          Editează
+                          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                         </button>
                         <button
                           onClick={() => onDelete(category.id, category.isSystemCategory)}
-                          disabled={category.isSystemCategory ?? false}
-                          className={`px-3 py-1 rounded-lg text-sm transition-colors ${
-                            category.isSystemCategory
-                              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                              : "bg-red-500 hover:bg-red-600 text-white"
-                          }`}
+                          title="Șterge"
+                          className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
                         >
-                          Șterge
+                          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
                       </div>
                     </td>

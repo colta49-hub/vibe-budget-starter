@@ -19,6 +19,7 @@ interface TransactionRow {
   bankColor: string | null;
   categoryName: string | null;
   categoryIcon: string | null;
+  categoryType: string | null;
 }
 
 interface TransactionForm {
@@ -31,6 +32,13 @@ interface TransactionForm {
 }
 
 const today = () => new Date().toISOString().split("T")[0];
+
+function getCategoryColor(type: string | null | undefined): string {
+  if (type === "income") return "#16a34a";
+  if (type === "transfer") return "#2563eb";
+  if (type === "expense") return "#ef4444";
+  return "#6b7280";
+}
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
@@ -675,11 +683,83 @@ export default function TransactionsPage() {
                     </td>
                     <td className="px-6 py-4">
                       {t.categoryName ? (
-                        <span className="text-sm text-gray-700">
-                          {t.categoryIcon} {t.categoryName}
-                        </span>
+                        <select
+                          value={t.categoryId || ""}
+                          onChange={async (e) => {
+                            const categoryId = e.target.value || null;
+                            const cat = categories.find((c) => c.id === categoryId);
+                            try {
+                              await fetch(`/api/transactions/${t.id}`, {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ categoryId }),
+                              });
+                              setTransactions((prev) =>
+                                prev.map((tx) =>
+                                  tx.id === t.id
+                                    ? {
+                                        ...tx,
+                                        categoryId,
+                                        categoryName: cat?.name || null,
+                                        categoryIcon: cat?.icon || null,
+                                        categoryType: cat?.type || null,
+                                      }
+                                    : tx
+                                )
+                              );
+                            } catch {
+                              toast.error("Eroare la salvarea categoriei.");
+                            }
+                          }}
+                          style={{ color: getCategoryColor(t.categoryType), fontWeight: 600, borderColor: getCategoryColor(t.categoryType) }}
+                          className="text-sm border rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                        >
+                          <option value="">— fără categorie —</option>
+                          {categories.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.icon} {c.name}
+                            </option>
+                          ))}
+                        </select>
                       ) : (
-                        <span className="text-sm text-gray-300">—</span>
+                        <select
+                          value=""
+                          onChange={async (e) => {
+                            const categoryId = e.target.value || null;
+                            if (!categoryId) return;
+                            const cat = categories.find((c) => c.id === categoryId);
+                            try {
+                              await fetch(`/api/transactions/${t.id}`, {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ categoryId }),
+                              });
+                              setTransactions((prev) =>
+                                prev.map((tx) =>
+                                  tx.id === t.id
+                                    ? {
+                                        ...tx,
+                                        categoryId,
+                                        categoryName: cat?.name || null,
+                                        categoryIcon: cat?.icon || null,
+                                        categoryType: cat?.type || null,
+                                      }
+                                    : tx
+                                )
+                              );
+                            } catch {
+                              toast.error("Eroare la salvarea categoriei.");
+                            }
+                          }}
+                          className="text-sm text-gray-400 border border-dashed border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white cursor-pointer"
+                        >
+                          <option value="">+ Adaugă</option>
+                          {categories.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.icon} {c.name}
+                            </option>
+                          ))}
+                        </select>
                       )}
                     </td>
                     <td className="px-6 py-4">

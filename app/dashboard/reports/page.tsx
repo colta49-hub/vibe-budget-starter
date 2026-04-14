@@ -20,6 +20,12 @@ interface TransactionRow {
   categoryIcon: string | null;
 }
 
+interface Bank {
+  id: string;
+  name: string;
+  color: string | null;
+}
+
 type Period = "month" | "3months" | "6months" | "all";
 
 const COLORS = [
@@ -59,11 +65,15 @@ function getStartDate(period: Period): string {
 
 export default function ReportsPage() {
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
+  const [banks, setBanks] = useState<Bank[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<Period>("month");
+  const [filterBank, setFilterBank] = useState<string>("");
+  const [aiAnalysis, setAiAnalysis] = useState<string>("");
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
-    fetchTransactions();
+    Promise.all([fetchTransactions(), fetchBanks()]);
   }, []);
 
   const fetchTransactions = async () => {
@@ -78,8 +88,52 @@ export default function ReportsPage() {
     }
   };
 
+  const fetchBanks = async () => {
+    try {
+      const res = await fetch("/api/banks");
+      const data = await res.json();
+      setBanks(data.banks || []);
+    } catch {
+      // ignorăm eroarea pentru bănci
+    }
+  };
+
+  const handleAnalyzeAI = async () => {
+    setAiLoading(true);
+    setAiAnalysis("");
+    try {
+      const categorii = Object.entries(byCategoryMap).map(([category, total]) => ({
+        category,
+        total,
+        count: expenses.filter((t) => (t.categoryName || "Necategorizat") === category).length,
+      }));
+
+      const res = await fetch("/api/ai/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          totalCheltuieli,
+          totalVenituri,
+          sold,
+          period,
+          categorii,
+          nrTranzactii: filtered.length,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setAiAnalysis(data.analysis);
+    } catch {
+      toast.error("Eroare la analiza AI. Verifică API key-ul.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const startDate = getStartDate(period);
-  const filtered = transactions.filter((t) => t.date >= startDate);
+  const filtered = transactions
+    .filter((t) => t.date >= startDate)
+    .filter((t) => !filterBank || t.bankId === filterBank);
   const expenses = filtered.filter((t) => t.amount < 0);
   const income = filtered.filter((t) => t.amount > 0);
 
@@ -122,13 +176,38 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Rapoarte 📊</h1>
-        <p className="text-gray-600 mt-1">Analiză vizuală a veniturilor și cheltuielilor</p>
+      <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Rapoarte 📊</h1>
+          <p className="text-gray-600 mt-1">Analiză vizuală a veniturilor și cheltuielilor</p>
+          <a
+            href="/dashboard/reports/pivot"
+            className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-teal-600 hover:underline"
+          >
+            📅 Vezi raport pivot pe luni / ani →
+          </a>
+        </div>
+        <button
+          onClick={handleAnalyzeAI}
+          disabled={aiLoading || transactions.length === 0}
+          className="flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ backgroundColor: "#6366f1", color: "#fff" }}
+        >
+          {aiLoading ? (
+            <>
+              <span className="animate-spin">⏳</span>
+              Analizează...
+            </>
+          ) : (
+            <>
+              ✨ Analizează cheltuielile
+            </>
+          )}
+        </button>
       </div>
 
       {/* Filtre perioadă */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-4">
         {PERIOD_OPTIONS.map((opt) => (
           <button
             key={opt.value}
@@ -144,6 +223,41 @@ export default function ReportsPage() {
           </button>
         ))}
       </div>
+
+      {/* Filtre per bancă */}
+      {banks.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 mb-6">
+          <button
+            onClick={() => setFilterBank("")}
+            className="px-4 py-2 rounded-full text-sm font-medium transition-colors"
+            style={
+              !filterBank
+                ? { backgroundColor: "#0d9488", color: "#fff" }
+                : { backgroundColor: "#f1f5f9", color: "#475569" }
+            }
+          >
+            Toate băncile
+          </button>
+          {banks.map((b) => (
+            <button
+              key={b.id}
+              onClick={() => setFilterBank(filterBank === b.id ? "" : b.id)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors"
+              style={
+                filterBank === b.id
+                  ? { backgroundColor: b.color || "#6366f1", color: "#fff" }
+                  : { backgroundColor: "#f1f5f9", color: "#475569" }
+              }
+            >
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: b.color || "#6366f1" }}
+              />
+              {b.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Carduri sumar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -193,23 +307,26 @@ export default function ReportsPage() {
                 Nicio cheltuială în această perioadă.
               </p>
             ) : (
-              <ResponsiveContainer width="100%" height={320}>
+              <ResponsiveContainer width="100%" height={360}>
                 <PieChart>
                   <Pie
                     data={pieData}
                     cx="50%"
                     cy="50%"
                     outerRadius={110}
+                    innerRadius={40}
                     dataKey="value"
-                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                    labelLine={false}
+                    label={({ name, percent }) =>
+                      percent > 0.04 ? `${name} ${(percent * 100).toFixed(0)}%` : ""
+                    }
+                    labelLine={true}
                   >
                     {pieData.map((_, index) => (
                       <Cell key={index} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => [`£${value.toFixed(2)}`, "Cheltuieli"]}
+                    formatter={(value: number, name: string) => [`£${value.toFixed(2)}`, name]}
                   />
                   <Legend
                     formatter={(value) => (
@@ -254,6 +371,19 @@ export default function ReportsPage() {
                 </BarChart>
               </ResponsiveContainer>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* AI Financial Coach rezultat */}
+      {aiAnalysis && (
+        <div className="mt-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border-l-4" style={{ borderColor: "#6366f1" }}>
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-2xl">🤖</span>
+            <h2 className="text-lg font-semibold text-gray-900">AI Financial Coach</h2>
+          </div>
+          <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+            {aiAnalysis}
           </div>
         </div>
       )}

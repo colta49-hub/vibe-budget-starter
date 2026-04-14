@@ -20,30 +20,116 @@ export interface DefaultCategory {
 const DEFAULT_CATEGORIES: DefaultCategory[] = [
   // --- VENITURI ---
   {
+    name: "Venituri Clienți",
+    type: "income",
+    icon: "💅",
+    description: "Plăți de la clientele salonului (nume persoane, transfer direct)",
+  },
+  {
+    name: "Venituri Universeoftware",
+    type: "income",
+    icon: "📲",
+    description: "Plăți din aplicația de programări Universeoftware",
+  },
+  {
     name: "Venituri",
     type: "income",
     icon: "💰",
-    description: "Salarii, freelance, dividende și alte surse de venit",
+    description: "Alte venituri: freelance, dividende, surse diverse",
   },
 
-  // --- CHELTUIELI ---
+  // --- CHELTUIELI SALON ---
+  {
+    name: "Chirie Salon",
+    type: "expense",
+    icon: "🏪",
+    description: "Chiria lunară a salonului",
+  },
+  {
+    name: "Produse Salon",
+    type: "expense",
+    icon: "🧴",
+    description: "Produse pentru extensii gene, farmacie, site-uri beauty",
+  },
+  {
+    name: "Produse Estetică",
+    type: "expense",
+    icon: "💉",
+    description: "Seringi, acid hialuronic, botox, produse estetică medicală",
+  },
+  {
+    name: "eBay",
+    type: "expense",
+    icon: "🛍️",
+    description: "Cumpărături produse de pe eBay",
+  },
+  {
+    name: "AliExpress",
+    type: "expense",
+    icon: "📦",
+    description: "Cumpărături produse de pe AliExpress",
+  },
+  {
+    name: "Gunoi Medical",
+    type: "expense",
+    icon: "🧹",
+    description: "Colectare deșeuri medicale/sanitare salon",
+  },
+  {
+    name: "Software & Apps",
+    type: "expense",
+    icon: "💻",
+    description: "Universeoftware, Google, Apple, subscripții business",
+  },
+  {
+    name: "Aplicație Booking",
+    type: "expense",
+    icon: "📅",
+    description: "Abonament aplicație de programări pentru salon",
+  },
+  {
+    name: "Abonamente Lunare",
+    type: "expense",
+    icon: "🔁",
+    description: "Abonamente lunare diverse: Netflix, Spotify, servicii online",
+  },
+  {
+    name: "Colectare Deșeuri",
+    type: "expense",
+    icon: "🗑️",
+    description: "Compania de colectare gunoi medical/salon",
+  },
+  {
+    name: "Contabilitate",
+    type: "expense",
+    icon: "📋",
+    description: "Plata anuală/lunară a contabilului",
+  },
+
+  // --- CHELTUIELI PERSONALE / GOSPODĂRIE ---
+  {
+    name: "Utilități",
+    type: "expense",
+    icon: "⚡",
+    description: "Council Tax, gaz, electric, apă",
+  },
+  {
+    name: "Telefon & Mobile",
+    type: "expense",
+    icon: "📱",
+    description: "GiffGaff, abonament mobil lunar",
+  },
   {
     name: "Transport",
     type: "expense",
     icon: "🚗",
-    description: "Benzină, taxi, metrou, parcări, bilete",
+    description: "Benzină, taxi, Uber, metrou, parcări",
   },
   {
-    name: "Cumpărături",
+    name: "Mâncare & Băuturi",
     type: "expense",
-    icon: "🛒",
-    description: "Supermarket, magazine, online shopping",
-  },
-  {
-    name: "Locuință",
-    type: "expense",
-    icon: "🏠",
-    description: "Chirie, utilități, internet, telefon fix",
+    icon: "🍽️",
+    description: "Supermarket, restaurante, cafenele",
   },
   {
     name: "Sănătate",
@@ -52,22 +138,16 @@ const DEFAULT_CATEGORIES: DefaultCategory[] = [
     description: "Medicamente, consultații, analize medicale",
   },
   {
-    name: "Divertisment",
+    name: "Farmacie",
     type: "expense",
-    icon: "🎬",
-    description: "Cinema, restaurante, cafenele, ieșiri",
-  },
-  {
-    name: "Subscripții",
-    type: "expense",
-    icon: "📱",
-    description: "Netflix, Spotify, Adobe, alte abonamente lunare",
+    icon: "💊",
+    description: "Medicamente, suplimente, produse farmaceutice",
   },
   {
     name: "Educație",
     type: "expense",
     icon: "📚",
-    description: "Cursuri, cărți, tutoriale, școală",
+    description: "Cursuri, cărți, formare profesională",
   },
   {
     name: "Cash",
@@ -79,7 +159,13 @@ const DEFAULT_CATEGORIES: DefaultCategory[] = [
     name: "Taxe și Impozite",
     type: "expense",
     icon: "🏛️",
-    description: "Impozite, taxe guvernamentale, contribuții",
+    description: "Impozite, taxe guvernamentale, National Insurance",
+  },
+  {
+    name: "Alte Cheltuieli",
+    type: "expense",
+    icon: "📦",
+    description: "Cheltuieli diverse necategorizate",
   },
 
   // --- TRANSFERURI ---
