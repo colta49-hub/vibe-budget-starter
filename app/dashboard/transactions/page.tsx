@@ -51,6 +51,8 @@ export default function TransactionsPage() {
   const [editingTransaction, setEditingTransaction] = useState<TransactionRow | null>(null);
   const [saving, setSaving] = useState(false);
   const [recategorizing, setRecategorizing] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [deletingSelected, setDeletingSelected] = useState(false);
 
   const [form, setForm] = useState<TransactionForm>({
     date: today(),
@@ -163,6 +165,42 @@ export default function TransactionsPage() {
       toast.success("Tranzacție ștearsă cu succes!");
     } catch {
       toast.error("Eroare de conexiune. Încearcă din nou.");
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Ești sigur că vrei să ștergi ${selectedIds.size} tranzacții selectate?`)) return;
+    setDeletingSelected(true);
+    try {
+      await Promise.all(
+        Array.from(selectedIds).map((id) =>
+          fetch(`/api/transactions/${id}`, { method: "DELETE" })
+        )
+      );
+      setTransactions((prev) => prev.filter((t) => !selectedIds.has(t.id)));
+      setSelectedIds(new Set());
+      toast.success(`${selectedIds.size} tranzacții șterse.`);
+    } catch {
+      toast.error("Eroare la ștergere.");
+    } finally {
+      setDeletingSelected(false);
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map((t) => t.id)));
     }
   };
 
@@ -361,6 +399,16 @@ export default function TransactionsPage() {
           <p className="text-gray-600 mt-1">Istoricul și gestionarea tranzacțiilor</p>
         </div>
         <div className="flex items-center gap-2">
+          {selectedIds.size > 0 && (
+            <button
+              onClick={handleDeleteSelected}
+              disabled={deletingSelected}
+              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              style={{ backgroundColor: "#fef2f2", color: "#dc2626", border: "1px solid #fca5a5" }}
+            >
+              {deletingSelected ? "⏳ Se șterge..." : `🗑️ Șterge ${selectedIds.size} selectate`}
+            </button>
+          )}
           <button
             onClick={handleRecategorize}
             disabled={recategorizing}
@@ -813,6 +861,14 @@ export default function TransactionsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-100">
+                  <th className="px-4 py-4 w-10">
+                    <input
+                      type="checkbox"
+                      checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 rounded border-gray-300 accent-teal-600 cursor-pointer"
+                    />
+                  </th>
                   <th className="text-left text-sm font-medium text-gray-500 px-6 py-4 w-32">Data</th>
                   <th className="text-left text-sm font-medium text-gray-500 px-6 py-4">Descriere</th>
                   <th className="text-left text-sm font-medium text-gray-500 px-6 py-4">Categorie</th>
@@ -823,7 +879,15 @@ export default function TransactionsPage() {
               </thead>
               <tbody>
                 {filtered.map((t) => (
-                  <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                  <tr key={t.id} className={`border-b border-gray-50 transition-colors ${selectedIds.has(t.id) ? "bg-red-50/50" : "hover:bg-gray-50/50"}`}>
+                    <td className="px-4 py-4 w-10">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(t.id)}
+                        onChange={() => toggleSelect(t.id)}
+                        className="w-4 h-4 rounded border-gray-300 accent-teal-600 cursor-pointer"
+                      />
+                    </td>
                     <td className="px-6 py-4 w-32">
                       <span className="text-sm text-gray-600">{t.date}</span>
                     </td>
