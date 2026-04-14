@@ -310,16 +310,17 @@ export default function TransactionsPage() {
         {/* Shortcut-uri an fiscal UK */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <span className="text-xs text-gray-500 font-medium">An fiscal UK:</span>
-          {Array.from({ length: new Date().getFullYear() - 2022 + 1 }, (_, i) => 2022 + i).map((y) => (
-            <button
-              key={y}
-              onClick={() => setFiscalYear(y)}
-              className="text-xs border border-teal-300 hover:bg-teal-50 text-teal-700 px-3 py-1 rounded-full transition-colors"
-            >
-              {y}/{y + 1}
-            </button>
-          ))}
-          <span className="text-xs text-gray-400 ml-1">(6 Apr — 5 Apr)</span>
+          <select
+            onChange={(e) => e.target.value && setFiscalYear(Number(e.target.value))}
+            defaultValue=""
+            className="text-xs border border-teal-300 text-teal-700 px-3 py-1 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white cursor-pointer"
+          >
+            <option value="" disabled>Alege anul...</option>
+            {Array.from({ length: new Date().getFullYear() - 2022 + 1 }, (_, i) => 2022 + i).map((y) => (
+              <option key={y} value={y}>{y}/{y + 1}</option>
+            ))}
+          </select>
+          <span className="text-xs text-gray-400">(6 Apr — 5 Apr)</span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <input
