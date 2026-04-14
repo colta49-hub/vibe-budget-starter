@@ -222,9 +222,10 @@ export default function ReportsPage() {
     }));
 
   // Date pie chart per lună
-  const allMonths = Array.from(new Set(expenses.map((t) => t.date.slice(0, 7)))).sort();
+  const allMonths = Array.from(new Set(filtered.map((t) => t.date.slice(0, 7)))).sort();
   const piePerMonth = allMonths.map((ym) => {
     const monthExpenses = expenses.filter((t) => t.date.startsWith(ym));
+    const monthIncome = income.filter((t) => t.date.startsWith(ym));
     const catMap = monthExpenses.reduce((acc, t) => {
       const key = t.categoryName || "Necategorizat";
       acc[key] = (acc[key] || 0) + Math.abs(t.amount);
@@ -233,8 +234,10 @@ export default function ReportsPage() {
     const data = Object.entries(catMap)
       .map(([name, value]) => ({ name, value: parseFloat(value.toFixed(2)) }))
       .sort((a, b) => b.value - a.value);
-    const total = monthExpenses.reduce((s, t) => s + Math.abs(t.amount), 0);
-    return { ym, label: formatMonth(ym), data, total };
+    const totalCh = monthExpenses.reduce((s, t) => s + Math.abs(t.amount), 0);
+    const totalVen = monthIncome.reduce((s, t) => s + t.amount, 0);
+    const soldLuna = totalVen - totalCh;
+    return { ym, label: formatMonth(ym), data, totalCh, totalVen, soldLuna };
   });
 
   if (loading) {
@@ -444,13 +447,24 @@ export default function ReportsPage() {
         <div className="mt-8">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Cheltuieli pe categorii — per lună</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {piePerMonth.map(({ ym, label, data, total }) => (
+            {piePerMonth.map(({ ym, label, data, totalCh, totalVen, soldLuna }) => (
               <div key={ym} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-gray-800">{label}</h3>
-                  <span className="text-sm font-bold" style={{ color: "#ef4444" }}>
-                    £{total.toFixed(2)}
-                  </span>
+                <h3 className="font-semibold text-gray-800 mb-3">{label}</h3>
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  <div className="text-center">
+                    <p className="text-xs text-gray-400 mb-0.5">Venituri</p>
+                    <p className="text-sm font-bold" style={{ color: "#16a34a" }}>+£{totalVen.toFixed(2)}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-gray-400 mb-0.5">Cheltuieli</p>
+                    <p className="text-sm font-bold" style={{ color: "#ef4444" }}>-£{totalCh.toFixed(2)}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-gray-400 mb-0.5">Net</p>
+                    <p className="text-sm font-bold" style={{ color: soldLuna >= 0 ? "#2563eb" : "#ef4444" }}>
+                      {soldLuna >= 0 ? "+" : ""}£{soldLuna.toFixed(2)}
+                    </p>
+                  </div>
                 </div>
                 <ResponsiveContainer width="100%" height={260}>
                   <PieChart margin={{ top: 10, right: 40, bottom: 10, left: 40 }}>
