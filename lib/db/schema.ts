@@ -172,6 +172,7 @@ export const transactions = pgTable("transactions", {
   description: text("description").notNull(), // "MEGA IMAGE 123"
   amount: decimal("amount", { precision: 10, scale: 2, mode: 'number' }).notNull(), // -45.50 (negativ = cheltuială, pozitiv = venit)
   currency: text("currency").notNull().default("RON"), // RON, EUR, USD
+  notes: text("notes"), // Notițe personale opționale
   createdAt: timestamp("created_at")
     .notNull()
     .defaultNow(),

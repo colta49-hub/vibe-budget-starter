@@ -16,7 +16,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { date, description, amount, currency, bankId, categoryId } = body;
+    const { date, description, amount, currency, bankId, categoryId, notes } = body;
 
     if (!date || !description || amount === undefined || amount === null || amount === "") {
       return NextResponse.json(
@@ -34,6 +34,7 @@ export async function PUT(
         currency: currency || "RON",
         bankId: bankId || null,
         categoryId: categoryId || null,
+        notes: notes || null,
       })
       .where(and(eq(schema.transactions.id, id), eq(schema.transactions.userId, user.id)))
       .returning();

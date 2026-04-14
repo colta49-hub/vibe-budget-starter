@@ -20,6 +20,7 @@ interface TransactionRow {
   categoryName: string | null;
   categoryIcon: string | null;
   categoryType: string | null;
+  notes: string | null;
 }
 
 interface TransactionForm {
@@ -29,6 +30,7 @@ interface TransactionForm {
   currency: string;
   bankId: string;
   categoryId: string;
+  notes: string;
 }
 
 const today = () => new Date().toISOString().split("T")[0];
@@ -56,6 +58,7 @@ export default function TransactionsPage() {
     currency: "RON",
     bankId: "",
     categoryId: "",
+    notes: "",
   });
 
   const [search, setSearch] = useState("");
@@ -107,6 +110,7 @@ export default function TransactionsPage() {
           currency: form.currency,
           bankId: form.bankId || null,
           categoryId: form.categoryId || null,
+          notes: form.notes || null,
         }),
       });
 
@@ -155,6 +159,7 @@ export default function TransactionsPage() {
       currency: t.currency,
       bankId: t.bankId || "",
       categoryId: t.categoryId || "",
+      notes: t.notes || "",
     });
   };
 
@@ -174,6 +179,7 @@ export default function TransactionsPage() {
           currency: form.currency,
           bankId: form.bankId || null,
           categoryId: form.categoryId || null,
+          notes: form.notes || null,
         }),
       });
 
@@ -197,7 +203,7 @@ export default function TransactionsPage() {
   const handleCancel = () => {
     setShowForm(false);
     setEditingTransaction(null);
-    setForm({ date: today(), description: "", amount: "", currency: "RON", bankId: "", categoryId: "" });
+    setForm({ date: today(), description: "", amount: "", currency: "RON", bankId: "", categoryId: "", notes: "" });
   };
 
   const hasFilters = search || filterBank || filterCategory || filterDateFrom || filterDateTo;
@@ -477,6 +483,17 @@ export default function TransactionsPage() {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notițe <span className="text-gray-400 font-normal">(opț.)</span></label>
+                <textarea
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  placeholder="Ex: factură curent electric, client X, abonament..."
+                  rows={2}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
+                />
+              </div>
+
               <div className="flex gap-3 pt-2 border-t border-gray-100 mt-1">
                 <button
                   type="submit"
@@ -598,6 +615,17 @@ export default function TransactionsPage() {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notițe <span className="text-gray-400 font-normal">(opț.)</span></label>
+                <textarea
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  placeholder="Ex: factură curent electric, client X, abonament..."
+                  rows={2}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
+                />
+              </div>
+
               <div className="flex gap-3 pt-2 border-t border-gray-100 mt-1">
                 <button
                   type="submit"
@@ -690,6 +718,9 @@ export default function TransactionsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="font-medium text-gray-900">{t.description}</span>
+                      {t.notes && (
+                        <span title={t.notes} className="ml-1 cursor-help text-xs">📝</span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       {t.categoryName ? (

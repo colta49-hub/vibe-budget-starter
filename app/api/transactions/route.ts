@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
         categoryName: schema.categories.name,
         categoryIcon: schema.categories.icon,
         categoryType: schema.categories.type,
+        notes: schema.transactions.notes,
       })
       .from(schema.transactions)
       .leftJoin(schema.banks, eq(schema.transactions.bankId, schema.banks.id))
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { date, description, amount, currency, bankId, categoryId } = body;
+    const { date, description, amount, currency, bankId, categoryId, notes } = body;
 
     if (!date || !description || amount === undefined || amount === null || amount === "") {
       return NextResponse.json(
@@ -72,6 +73,7 @@ export async function POST(request: NextRequest) {
         description,
         amount: Number(amount),
         currency: currency || "RON",
+        notes: notes || null,
       })
       .returning();
 
