@@ -179,6 +179,13 @@ export default function PivotPage() {
     [monthVenituri]
   );
 
+  const soldLuni = useMemo(
+    () => months.map((_, i) => monthVenituri[i] - (monthTotals[i]?.cheltuieli ?? 0)),
+    [months, monthVenituri, monthTotals]
+  );
+
+  const grandSold = grandVenituri - grandTotal;
+
   // Top creșteri / scăderi lună-peste-lună (ultimele 2 luni)
   const { topCresteri, topScaderi } = useMemo(() => {
     if (months.length < 2) return { topCresteri: [], topScaderi: [] };
@@ -488,38 +495,32 @@ export default function PivotPage() {
               </tr>
 
               {/* Rând SOLD NET */}
-              {(() => {
-                const soldLuni = months.map((_, i) => monthVenituri[i] - (monthTotals[i]?.cheltuieli ?? 0));
-                const grandSold = grandVenituri - grandTotal;
-                return (
-                  <tr style={{ backgroundColor: "#0c1a3a" }}>
-                    <td
-                      className="sticky left-0 z-10 px-5 py-3 font-bold"
-                      style={{ backgroundColor: "#0c1a3a", borderRight: "1px solid #374151", color: "#93c5fd" }}
-                    >
-                      SOLD NET
-                    </td>
-                    {soldLuni.map((sold, i) => (
-                      <td key={months[i]} className="px-4 py-3 text-center" style={{ borderRight: "1px solid #334155" }}>
-                        {sold !== 0 ? (
-                          <span className="font-bold" style={{ color: sold >= 0 ? "#93c5fd" : "#f87171", fontSize: "13px" }}>
-                            {sold >= 0 ? "+" : ""}{Math.round(sold).toLocaleString()}
-                          </span>
-                        ) : (
-                          <span style={{ color: "#475569" }}>—</span>
-                        )}
-                      </td>
-                    ))}
-                    <td
-                      className="px-4 py-3 text-center font-bold"
-                      style={{ borderLeft: "2px solid #374151", backgroundColor: "#060f24", color: grandSold >= 0 ? "#93c5fd" : "#f87171", fontSize: "14px" }}
-                    >
-                      {grandSold >= 0 ? "+" : ""}£{Math.round(grandSold).toLocaleString()}
-                    </td>
-                    <td style={{ backgroundColor: "#060f24" }} />
-                  </tr>
-                );
-              })()}
+              <tr style={{ backgroundColor: "#0c1a3a" }}>
+                <td
+                  className="sticky left-0 z-10 px-5 py-3 font-bold"
+                  style={{ backgroundColor: "#0c1a3a", borderRight: "1px solid #374151", color: "#93c5fd" }}
+                >
+                  SOLD NET
+                </td>
+                {soldLuni.map((sold, i) => (
+                  <td key={months[i]} className="px-4 py-3 text-center" style={{ borderRight: "1px solid #334155" }}>
+                    {sold !== 0 ? (
+                      <span className="font-bold" style={{ color: sold >= 0 ? "#93c5fd" : "#f87171", fontSize: "13px" }}>
+                        {sold >= 0 ? "+" : ""}{Math.round(sold).toLocaleString()}
+                      </span>
+                    ) : (
+                      <span style={{ color: "#475569" }}>—</span>
+                    )}
+                  </td>
+                ))}
+                <td
+                  className="px-4 py-3 text-center font-bold"
+                  style={{ borderLeft: "2px solid #374151", backgroundColor: "#060f24", color: grandSold >= 0 ? "#93c5fd" : "#f87171", fontSize: "14px" }}
+                >
+                  {grandSold >= 0 ? "+" : ""}£{Math.round(grandSold).toLocaleString()}
+                </td>
+                <td style={{ backgroundColor: "#060f24" }} />
+              </tr>
             </tbody>
           </table>
         </div>
