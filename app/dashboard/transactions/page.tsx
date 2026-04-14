@@ -268,8 +268,8 @@ export default function TransactionsPage() {
     .filter((t) => !search || t.description.toLowerCase().includes(search.toLowerCase()))
     .filter((t) => !filterBank || t.bankId === filterBank)
     .filter((t) => !filterCategory || t.categoryId === filterCategory)
-    .filter((t) => !filterDateFrom || t.date >= filterDateFrom)
-    .filter((t) => !filterDateTo || t.date <= filterDateTo);
+    .filter((t) => !filterDateFrom || t.date.slice(0, 10) >= filterDateFrom)
+    .filter((t) => !filterDateTo || t.date.slice(0, 10) <= filterDateTo);
 
   const totalVenituri = filtered.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
   const totalCheltuieli = filtered.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);

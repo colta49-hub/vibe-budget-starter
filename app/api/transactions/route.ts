@@ -36,7 +36,12 @@ export async function GET(request: NextRequest) {
       .where(eq(schema.transactions.userId, user.id))
       .orderBy(desc(schema.transactions.date));
 
-    return NextResponse.json({ transactions });
+    const normalized = transactions.map((t) => ({
+      ...t,
+      date: typeof t.date === "string" ? t.date.slice(0, 10) : t.date,
+      amount: Number(t.amount),
+    }));
+    return NextResponse.json({ transactions: normalized });
   } catch (error) {
     console.error("[TRANSACTIONS_GET] Error:", error);
     return NextResponse.json(
