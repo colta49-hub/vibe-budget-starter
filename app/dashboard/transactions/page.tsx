@@ -254,6 +254,73 @@ export default function TransactionsPage() {
     URL.revokeObjectURL(url);
   };
 
+  const exportExcel = async () => {
+    const ExcelJS = (await import("exceljs")).default;
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Tranzacții");
+
+    // Header
+    sheet.columns = [
+      { header: "Data", key: "date", width: 14 },
+      { header: "Descriere", key: "description", width: 40 },
+      { header: "Categorie", key: "category", width: 20 },
+      { header: "Bancă", key: "bank", width: 14 },
+      { header: "Sumă", key: "amount", width: 14 },
+      { header: "Valută", key: "currency", width: 10 },
+    ];
+
+    // Header styling
+    sheet.getRow(1).eachCell((cell) => {
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF0D9488" } };
+    });
+
+    // Rows
+    filtered.forEach((t) => {
+      const row = sheet.addRow({
+        date: t.date,
+        description: t.description,
+        category: t.categoryName || "",
+        bank: t.bankName || "",
+        amount: t.amount,
+        currency: t.currency,
+      });
+      const amountCell = row.getCell("amount");
+      if (t.amount > 0) {
+        amountCell.font = { bold: true, color: { argb: "FF16A34A" } };
+      } else {
+        amountCell.font = { bold: true, color: { argb: "FFEF4444" } };
+      }
+    });
+
+    // Sumar
+    const totalVenituri = filtered.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
+    const totalCheltuieli = filtered.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+    const soldNet = totalVenituri - totalCheltuieli;
+
+    sheet.addRow([]);
+    const r1 = sheet.addRow(["Total venituri", "", "", "", totalVenituri, "GBP"]);
+    r1.getCell(1).font = { bold: true };
+    r1.getCell(5).font = { bold: true, color: { argb: "FF16A34A" } };
+
+    const r2 = sheet.addRow(["Total cheltuieli", "", "", "", -totalCheltuieli, "GBP"]);
+    r2.getCell(1).font = { bold: true };
+    r2.getCell(5).font = { bold: true, color: { argb: "FFEF4444" } };
+
+    const r3 = sheet.addRow(["Sold net", "", "", "", soldNet, "GBP"]);
+    r3.getCell(1).font = { bold: true };
+    r3.getCell(5).font = { bold: true, color: { argb: soldNet >= 0 ? "FF16A34A" : "FFEF4444" } };
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `tranzactii-${filterDateFrom || "toate"}-${filterDateTo || ""}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -672,12 +739,21 @@ export default function TransactionsPage() {
                 <p className="text-lg font-bold text-gray-900">{filtered.length}</p>
               </div>
             </div>
-            <button
-              onClick={exportCSV}
-              className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-            >
-              📥 Exportă CSV
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={exportExcel}
+                className="text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                style={{ backgroundColor: "#16a34a" }}
+              >
+                📊 Exportă Excel
+              </button>
+              <button
+                onClick={exportCSV}
+                className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                📥 Exportă CSV
+              </button>
+            </div>
           </div>
         </div>
       )}
