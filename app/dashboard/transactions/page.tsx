@@ -70,6 +70,7 @@ export default function TransactionsPage() {
   const [filterDateFrom, setFilterDateFrom] = useState("");
   const [filterDateTo, setFilterDateTo] = useState("");
   const [filterResetKey, setFilterResetKey] = useState(0);
+  const [fiscalYearSelected, setFiscalYearSelected] = useState("");
 
   useEffect(() => {
     fetchAll();
@@ -274,9 +275,14 @@ export default function TransactionsPage() {
   const totalCheltuieli = filtered.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
   const sold = totalVenituri - totalCheltuieli;
 
-  const setFiscalYear = (year: number) => {
-    setFilterDateFrom(`${year}-04-06`);
-    setFilterDateTo(`${year + 1}-04-05`);
+  const setFiscalYear = (year: string) => {
+    setFiscalYearSelected(year);
+    if (year) {
+      const y = Number(year);
+      setFilterDateFrom(`${y}-04-06`);
+      setFilterDateTo(`${y + 1}-04-05`);
+      setFilterResetKey((k) => k + 1);
+    }
   };
 
   const exportCSV = () => {
@@ -461,13 +467,13 @@ export default function TransactionsPage() {
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <span className="text-xs text-gray-500 font-medium">An fiscal UK:</span>
           <select
-            onChange={(e) => e.target.value && setFiscalYear(Number(e.target.value))}
-            defaultValue=""
+            value={fiscalYearSelected}
+            onChange={(e) => setFiscalYear(e.target.value)}
             className="text-xs border border-teal-300 text-teal-700 px-3 py-1 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white cursor-pointer"
           >
-            <option value="" disabled>Alege anul...</option>
+            <option value="">Alege anul...</option>
             {Array.from({ length: 2030 - 2022 + 1 }, (_, i) => 2022 + i).map((y) => (
-              <option key={y} value={y}>{y}/{y + 1}</option>
+              <option key={y} value={String(y)}>{y}/{y + 1}</option>
             ))}
           </select>
           <span className="text-xs text-gray-400">(6 Apr — 5 Apr)</span>
@@ -526,7 +532,7 @@ export default function TransactionsPage() {
           </div>
 
           <button
-            onClick={() => { setSearch(""); setFilterCategory(""); setFilterDateFrom(""); setFilterDateTo(""); setFilterResetKey((k) => k + 1); }}
+            onClick={() => { setSearch(""); setFilterCategory(""); setFilterDateFrom(""); setFilterDateTo(""); setFiscalYearSelected(""); setFilterResetKey((k) => k + 1); }}
             className="border border-gray-300 hover:bg-gray-50 text-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
           >
             ✕ Resetează filtre
