@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     // Ia toate tranzacțiile fără categorie
     const uncategorized = await db
-      .select({ id: schema.transactions.id, description: schema.transactions.description })
+      .select({ id: schema.transactions.id, description: schema.transactions.description, amount: schema.transactions.amount })
       .from(schema.transactions)
       .where(
         and(
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     let updated = 0;
 
     for (const tx of uncategorized) {
-      const categoryId = await autoCategorize(tx.description, user.id);
+      const categoryId = await autoCategorize(tx.description, user.id, tx.amount);
       if (categoryId) {
         await db
           .update(schema.transactions)

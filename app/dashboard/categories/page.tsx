@@ -387,7 +387,7 @@ function CategorySection({ title, type, categories, onEdit, onDelete, onAdd, key
                   {keywordsPanelId === category.id && (
                     <tr>
                       <td colSpan={3} className="px-6 py-4 bg-teal-50/50 border-b border-gray-100">
-                        <KeywordsPanel categoryId={category.id} categoryName={category.name} />
+                        <KeywordsPanel categoryId={category.id} categoryName={category.name} categoryType={type} />
                       </td>
                     </tr>
                   )}
@@ -404,9 +404,10 @@ function CategorySection({ title, type, categories, onEdit, onDelete, onAdd, key
 interface KeywordsPanelProps {
   categoryId: string;
   categoryName: string;
+  categoryType?: string;
 }
 
-function KeywordsPanel({ categoryId, categoryName }: KeywordsPanelProps) {
+function KeywordsPanel({ categoryId, categoryName, categoryType }: KeywordsPanelProps) {
   const [keywords, setKeywords] = useState<UserKeyword[]>([]);
   const [loading, setLoading] = useState(true);
   const [newKeyword, setNewKeyword] = useState("");
@@ -479,6 +480,38 @@ function KeywordsPanel({ categoryId, categoryName }: KeywordsPanelProps) {
       <p className="text-xs text-teal-600">
         Dacă descrierea unei tranzacții conține unul din aceste cuvinte, va fi categorizată automat.
       </p>
+      {categoryType === "income" && !keywords.some((k) => k.keyword.trim() === "*") && (
+        <button
+          onClick={async () => {
+            setSaving(true);
+            try {
+              const res = await fetch("/api/keywords", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ keyword: "*", categoryId }),
+              });
+              const data = await res.json();
+              if (!res.ok) { toast.error(data.error || "Eroare."); return; }
+              setKeywords((prev) => [...prev, data.keyword]);
+              toast.success("Activat! Toate veniturile necunoscute → " + categoryName);
+            } catch {
+              toast.error("Eroare de conexiune.");
+            } finally {
+              setSaving(false);
+            }
+          }}
+          disabled={saving || loading}
+          className="self-start text-xs px-3 py-1.5 rounded-lg font-medium transition-colors"
+          style={{ backgroundColor: "#fffbeb", color: "#92400e", border: "1px solid #fcd34d" }}
+        >
+          ⭐ Prinde toate veniturile necunoscute
+        </button>
+      )}
+      {keywords.some((k) => k.keyword.trim() === "*") && (
+        <p className="text-xs font-medium" style={{ color: "#92400e" }}>
+          ⭐ Activ: toate veniturile fără altă categorie → <strong>{categoryName}</strong>
+        </p>
+      )}
 
       {loading ? (
         <p className="text-sm text-gray-400">Se încarcă...</p>
