@@ -349,7 +349,7 @@ export default function ReportsPage() {
           <p className="text-xs text-gray-500 mb-1">Sold net</p>
           <p
             className="text-2xl font-bold"
-            style={{ color: sold >= 0 ? "#16a34a" : "#ef4444" }}
+            style={{ color: sold >= 0 ? "#2563eb" : "#ef4444" }}
           >
             {sold >= 0 ? "+" : ""}£{sold.toFixed(2)}
           </p>
