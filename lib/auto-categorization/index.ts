@@ -14,7 +14,8 @@ export async function autoCategorize(
   const normalizedDesc = description.toLowerCase().trim();
 
   for (const kw of keywords) {
-    if (normalizedDesc.includes(kw.keyword.toLowerCase())) {
+    const cleanKeyword = kw.keyword.toLowerCase().replace(/[,;]+$/g, "").trim();
+    if (cleanKeyword && normalizedDesc.includes(cleanKeyword)) {
       return kw.categoryId;
     }
   }

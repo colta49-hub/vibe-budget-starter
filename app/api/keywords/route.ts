@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       .insert(schema.userKeywords)
       .values({
         userId: user.id,
-        keyword: keyword.trim().toLowerCase(),
+        keyword: keyword.trim().toLowerCase().replace(/[,;]+$/g, "").trim(),
         categoryId,
       })
       .returning();
