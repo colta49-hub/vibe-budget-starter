@@ -316,7 +316,7 @@ export default function TransactionsPage() {
             className="text-xs border border-teal-300 text-teal-700 px-3 py-1 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white cursor-pointer"
           >
             <option value="" disabled>Alege anul...</option>
-            {Array.from({ length: new Date().getFullYear() - 2022 + 1 }, (_, i) => 2022 + i).map((y) => (
+            {Array.from({ length: 2030 - 2022 + 1 }, (_, i) => 2022 + i).map((y) => (
               <option key={y} value={y}>{y}/{y + 1}</option>
             ))}
           </select>
