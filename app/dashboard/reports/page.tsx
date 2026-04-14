@@ -27,7 +27,7 @@ interface Bank {
   color: string | null;
 }
 
-type Period = "month" | "3months" | "6months" | "all";
+type Period = "month" | "3months" | "6months" | "12months" | "all";
 
 const COLORS = [
   "#0d9488", "#f97316", "#6366f1", "#ec4899", "#eab308",
@@ -39,6 +39,7 @@ const PERIOD_OPTIONS: { value: Period; label: string }[] = [
   { value: "month", label: "Luna curentă" },
   { value: "3months", label: "Ultimele 3 luni" },
   { value: "6months", label: "Ultimele 6 luni" },
+  { value: "12months", label: "Ultimul an" },
   { value: "all", label: "Tot" },
 ];
 
@@ -59,7 +60,7 @@ function getStartDate(period: Period): string {
   if (period === "month") {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
   }
-  const months = period === "3months" ? 3 : 6;
+  const months = period === "3months" ? 3 : period === "12months" ? 12 : 6;
   const d = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
 }
@@ -281,21 +282,18 @@ export default function ReportsPage() {
       </div>
 
       {/* Filtre perioadă */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {PERIOD_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => setPeriod(opt.value)}
-            className="px-4 py-2 rounded-full text-sm font-medium transition-colors"
-            style={
-              period === opt.value
-                ? { backgroundColor: "#0d9488", color: "#fff" }
-                : { backgroundColor: "#f1f5f9", color: "#475569" }
-            }
-          >
-            {opt.label}
-          </button>
-        ))}
+      <div className="flex items-center gap-3 mb-4">
+        <label className="text-sm text-gray-500 font-medium whitespace-nowrap">Perioadă:</label>
+        <select
+          value={period}
+          onChange={(e) => setPeriod(e.target.value as Period)}
+          className="text-sm border border-gray-200 rounded-xl px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 bg-white cursor-pointer"
+          style={{ focusRingColor: "#0d9488" } as React.CSSProperties}
+        >
+          {PERIOD_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
       </div>
 
       {/* Filtre per bancă */}
