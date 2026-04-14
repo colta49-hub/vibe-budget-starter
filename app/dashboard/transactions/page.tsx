@@ -69,6 +69,7 @@ export default function TransactionsPage() {
   const [filterCategory, setFilterCategory] = useState("");
   const [filterDateFrom, setFilterDateFrom] = useState("");
   const [filterDateTo, setFilterDateTo] = useState("");
+  const [filterResetKey, setFilterResetKey] = useState(0);
 
   useEffect(() => {
     fetchAll();
@@ -503,8 +504,9 @@ export default function TransactionsPage() {
           </select>
 
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-500 shrink-0">De la</label>
+            <label className="text-sm text-gray-500 shrink-0">De la *</label>
             <input
+              key={`from-${filterResetKey}`}
               type="date"
               value={filterDateFrom}
               onChange={(e) => setFilterDateFrom(e.target.value)}
@@ -513,8 +515,9 @@ export default function TransactionsPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-500 shrink-0">Până la</label>
+            <label className="text-sm text-gray-500 shrink-0">Până la *</label>
             <input
+              key={`to-${filterResetKey}`}
               type="date"
               value={filterDateTo}
               onChange={(e) => setFilterDateTo(e.target.value)}
@@ -523,7 +526,7 @@ export default function TransactionsPage() {
           </div>
 
           <button
-            onClick={() => { setSearch(""); setFilterBank(""); setFilterCategory(""); setFilterDateFrom(""); setFilterDateTo(""); }}
+            onClick={() => { setSearch(""); setFilterCategory(""); setFilterDateFrom(""); setFilterDateTo(""); setFilterResetKey((k) => k + 1); }}
             className="border border-gray-300 hover:bg-gray-50 text-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
           >
             ✕ Resetează filtre
