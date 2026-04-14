@@ -6,6 +6,7 @@ import {
   PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from "recharts";
+import type { PieLabelRenderProps } from "recharts";
 
 interface TransactionRow {
   id: string;
@@ -62,6 +63,60 @@ function getStartDate(period: Period): string {
   const d = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
 }
+
+// Label cu linie de conexiune pe pie chart
+const renderCustomLabel = ({
+  cx, cy, midAngle, outerRadius, name, percent,
+}: PieLabelRenderProps) => {
+  if ((percent as number) < 0.03) return null; // ascunde feliile prea mici
+  const RADIAN = Math.PI / 180;
+  const cxN = cx as number;
+  const cyN = cy as number;
+  const outerR = outerRadius as number;
+  const angle = midAngle as number;
+  const pct = percent as number;
+
+  const sin = Math.sin(-RADIAN * angle);
+  const cos = Math.cos(-RADIAN * angle);
+  const sx = cxN + (outerR + 6) * cos;
+  const sy = cyN + (outerR + 6) * sin;
+  const mx = cxN + (outerR + 22) * cos;
+  const my = cyN + (outerR + 22) * sin;
+  const ex = mx + (cos >= 0 ? 1 : -1) * 18;
+  const ey = my;
+  const textAnchor = cos >= 0 ? "start" : "end";
+
+  return (
+    <g>
+      <path
+        d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`}
+        stroke="#9ca3af"
+        fill="none"
+        strokeWidth={1}
+      />
+      <circle cx={ex} cy={ey} r={2} fill="#9ca3af" />
+      <text
+        x={ex + (cos >= 0 ? 4 : -4)}
+        y={ey}
+        textAnchor={textAnchor}
+        fill="#374151"
+        fontSize={11}
+        fontWeight={500}
+      >
+        {name}
+      </text>
+      <text
+        x={ex + (cos >= 0 ? 4 : -4)}
+        y={ey + 13}
+        textAnchor={textAnchor}
+        fill="#6b7280"
+        fontSize={10}
+      >
+        {`${(pct * 100).toFixed(1)}%`}
+      </text>
+    </g>
+  );
+};
 
 export default function ReportsPage() {
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
@@ -165,6 +220,22 @@ export default function ReportsPage() {
       month: formatMonth(month),
       total: parseFloat(total.toFixed(2)),
     }));
+
+  // Date pie chart per lună
+  const allMonths = Array.from(new Set(expenses.map((t) => t.date.slice(0, 7)))).sort();
+  const piePerMonth = allMonths.map((ym) => {
+    const monthExpenses = expenses.filter((t) => t.date.startsWith(ym));
+    const catMap = monthExpenses.reduce((acc, t) => {
+      const key = t.categoryName || "Necategorizat";
+      acc[key] = (acc[key] || 0) + Math.abs(t.amount);
+      return acc;
+    }, {} as Record<string, number>);
+    const data = Object.entries(catMap)
+      .map(([name, value]) => ({ name, value: parseFloat(value.toFixed(2)) }))
+      .sort((a, b) => b.value - a.value);
+    const total = monthExpenses.reduce((s, t) => s + Math.abs(t.amount), 0);
+    return { ym, label: formatMonth(ym), data, total };
+  });
 
   if (loading) {
     return (
@@ -307,17 +378,17 @@ export default function ReportsPage() {
                 Nicio cheltuială în această perioadă.
               </p>
             ) : (
-              <ResponsiveContainer width="100%" height={360}>
-                <PieChart>
+              <ResponsiveContainer width="100%" height={400}>
+                <PieChart margin={{ top: 20, right: 60, bottom: 20, left: 60 }}>
                   <Pie
                     data={pieData}
                     cx="50%"
                     cy="50%"
-                    outerRadius={110}
-                    innerRadius={40}
+                    outerRadius={100}
+                    innerRadius={35}
                     dataKey="value"
-                    label={false}
-                    labelLine={true}
+                    label={renderCustomLabel}
+                    labelLine={false}
                   >
                     {pieData.map((_, index) => (
                       <Cell key={index} fill={COLORS[index % COLORS.length]} />
@@ -325,11 +396,6 @@ export default function ReportsPage() {
                   </Pie>
                   <Tooltip
                     formatter={(value: number, name: string) => [`£${value.toFixed(2)}`, name]}
-                  />
-                  <Legend
-                    formatter={(value) => (
-                      <span style={{ fontSize: "12px", color: "#374151" }}>{value}</span>
-                    )}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -369,6 +435,46 @@ export default function ReportsPage() {
                 </BarChart>
               </ResponsiveContainer>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Grafice cheltuieli per lună */}
+      {piePerMonth.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Cheltuieli pe categorii — per lună</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {piePerMonth.map(({ ym, label, data, total }) => (
+              <div key={ym} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-5">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-gray-800">{label}</h3>
+                  <span className="text-sm font-bold" style={{ color: "#ef4444" }}>
+                    £{total.toFixed(2)}
+                  </span>
+                </div>
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart margin={{ top: 10, right: 40, bottom: 10, left: 40 }}>
+                    <Pie
+                      data={data}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      innerRadius={25}
+                      dataKey="value"
+                      label={renderCustomLabel}
+                      labelLine={false}
+                    >
+                      {data.map((_, index) => (
+                        <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value: number, name: string) => [`£${value.toFixed(2)}`, name]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            ))}
           </div>
         </div>
       )}
