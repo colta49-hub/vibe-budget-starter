@@ -50,6 +50,7 @@ export default function TransactionsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<TransactionRow | null>(null);
   const [saving, setSaving] = useState(false);
+  const [recategorizing, setRecategorizing] = useState(false);
 
   const [form, setForm] = useState<TransactionForm>({
     date: today(),
@@ -128,6 +129,21 @@ export default function TransactionsPage() {
       toast.error("Eroare de conexiune. Încearcă din nou.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleRecategorize = async () => {
+    setRecategorizing(true);
+    try {
+      const res = await fetch("/api/transactions/recategorize", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      toast.success(data.message);
+      await fetchAll();
+    } catch {
+      toast.error("Eroare la recategorizare.");
+    } finally {
+      setRecategorizing(false);
     }
   };
 
@@ -344,12 +360,22 @@ export default function TransactionsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Tranzacții 📊</h1>
           <p className="text-gray-600 mt-1">Istoricul și gestionarea tranzacțiilor</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-        >
-          + Adaugă tranzacție
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRecategorize}
+            disabled={recategorizing}
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+            style={{ backgroundColor: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac" }}
+          >
+            {recategorizing ? "⏳ Se procesează..." : "🔄 Recategorizează automat"}
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            + Adaugă tranzacție
+          </button>
+        </div>
       </div>
 
       {/* Filtrare rapidă per bancă */}
