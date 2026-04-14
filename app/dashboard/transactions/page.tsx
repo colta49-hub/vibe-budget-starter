@@ -281,7 +281,6 @@ export default function TransactionsPage() {
       const y = Number(year);
       setFilterDateFrom(`${y}-04-06`);
       setFilterDateTo(`${y + 1}-04-05`);
-      setFilterResetKey((k) => k + 1);
     }
   };
 
@@ -510,22 +509,22 @@ export default function TransactionsPage() {
           </select>
 
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-500 shrink-0">De la *</label>
+            <label className="text-sm text-gray-500 shrink-0">De la</label>
             <input
               key={`from-${filterResetKey}`}
               type="date"
-              value={filterDateFrom}
+              {...(filterDateFrom ? { value: filterDateFrom } : { defaultValue: "" })}
               onChange={(e) => setFilterDateFrom(e.target.value)}
               className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
           </div>
 
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-500 shrink-0">Până la *</label>
+            <label className="text-sm text-gray-500 shrink-0">Până la</label>
             <input
               key={`to-${filterResetKey}`}
               type="date"
-              value={filterDateTo}
+              {...(filterDateTo ? { value: filterDateTo } : { defaultValue: "" })}
               onChange={(e) => setFilterDateTo(e.target.value)}
               className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
