@@ -54,15 +54,36 @@ function formatMonth(ym: string): string {
   return `${MONTH_NAMES[month] || month} ${year}`;
 }
 
-function getStartDate(period: Period): string {
+function getDateRange(period: Period): { startDate: string; endDate: string } {
   const now = new Date();
-  if (period === "all") return "0000-00-00";
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  if (period === "all") return { startDate: "0000-00-00", endDate: "9999-12-31" };
+
   if (period === "month") {
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+    const start = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01`;
+    return { startDate: start, endDate: "9999-12-31" };
   }
-  const months = period === "3months" ? 3 : period === "12months" ? 12 : 6;
+
+  if (period === "12months") {
+    // An fiscal UK: 6 apr → 5 apr următor
+    // Dacă suntem după 6 apr, anul fiscal curent e year-04-06 → (year+1)-04-05
+    // Dacă suntem înainte de 6 apr, anul fiscal curent e (year-1)-04-06 → year-04-05
+    const year = now.getMonth() > 3 || (now.getMonth() === 3 && now.getDate() >= 6)
+      ? now.getFullYear()
+      : now.getFullYear() - 1;
+    return {
+      startDate: `${year}-04-06`,
+      endDate: `${year + 1}-04-05`,
+    };
+  }
+
+  const months = period === "3months" ? 3 : 6;
   const d = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+  return {
+    startDate: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-01`,
+    endDate: "9999-12-31",
+  };
 }
 
 // Label cu linie de conexiune pe pie chart
@@ -186,9 +207,9 @@ export default function ReportsPage() {
     }
   };
 
-  const startDate = getStartDate(period);
+  const { startDate, endDate } = getDateRange(period);
   const filtered = transactions
-    .filter((t) => t.date >= startDate)
+    .filter((t) => t.date >= startDate && t.date <= endDate)
     .filter((t) => !filterBank || t.bankId === filterBank);
   const expenses = filtered.filter((t) => t.amount < 0);
   const income = filtered.filter((t) => t.amount > 0);
