@@ -260,7 +260,7 @@ export default function TransactionsPage() {
     setForm({ date: today(), description: "", amount: "", currency: "RON", bankId: "", categoryId: "", notes: "" });
   };
 
-  const hasFilters = search || filterBank || filterCategory || filterDateFrom || filterDateTo;
+  const hasFilters = !!(search || filterBank || filterCategory || filterDateFrom || filterDateTo);
 
   const filtered = transactions
     .filter((t) => !search || t.description.toLowerCase().includes(search.toLowerCase()))
@@ -522,14 +522,12 @@ export default function TransactionsPage() {
             />
           </div>
 
-          {hasFilters && (
-            <button
-              onClick={() => { setSearch(""); setFilterBank(""); setFilterCategory(""); setFilterDateFrom(""); setFilterDateTo(""); }}
-              className="border border-gray-300 hover:bg-gray-50 text-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-            >
-              ✕ Resetează filtre
-            </button>
-          )}
+          <button
+            onClick={() => { setSearch(""); setFilterBank(""); setFilterCategory(""); setFilterDateFrom(""); setFilterDateTo(""); }}
+            className="border border-gray-300 hover:bg-gray-50 text-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            ✕ Resetează filtre
+          </button>
         </div>
       </div>
 
