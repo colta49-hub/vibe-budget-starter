@@ -1,11 +1,11 @@
 /**
- * CATEGORII PREDEFINITE (SISTEM)
+ * CATEGORII PREDEFINITE (SISTEM) — UK Self-Employed / SA103F
  *
- * Lista celor 12 categorii implicite create automat pentru fiecare utilizator nou.
- * Aceste categorii acoperă cele mai comune tipuri de tranzacții bancare.
+ * Categorii aliniate la HMRC Self Assessment SA103F.
+ * Create automat pentru fiecare utilizator nou.
  *
  * TIPURI:
- * - "expense" = cheltuială
+ * - "expense" = cheltuială deductibilă fiscal
  * - "income"  = venit
  * - "transfer" = transfer intern între conturi
  */
@@ -20,166 +20,110 @@ export interface DefaultCategory {
 const DEFAULT_CATEGORIES: DefaultCategory[] = [
   // --- VENITURI ---
   {
-    name: "Venituri Clienți",
-    type: "income",
-    icon: "💅",
-    description: "Plăți de la clientele salonului (nume persoane, transfer direct)",
-  },
-  {
-    name: "Venituri Universeoftware",
-    type: "income",
-    icon: "📲",
-    description: "Plăți din aplicația de programări Universeoftware",
-  },
-  {
-    name: "Venituri",
+    name: "Income",
     type: "income",
     icon: "💰",
-    description: "Alte venituri: freelance, dividende, surse diverse",
+    description: "Self-employment income, client payments, invoices",
+  },
+  {
+    name: "Client Transfer",
+    type: "income",
+    icon: "🔄",
+    description: "Bank transfers received from clients",
   },
 
-  // --- CHELTUIELI SALON ---
+  // --- CHELTUIELI DEDUCTIBILE UK (SA103F) ---
   {
-    name: "Chirie Salon",
+    name: "Office & Supplies",
     type: "expense",
-    icon: "🏪",
-    description: "Chiria lunară a salonului",
+    icon: "🏢",
+    description: "Stationery, printer ink, postage, software subscriptions, cloud storage",
   },
   {
-    name: "Produse Salon",
-    type: "expense",
-    icon: "🧴",
-    description: "Produse pentru extensii gene, farmacie, site-uri beauty",
-  },
-  {
-    name: "Produse Estetică",
-    type: "expense",
-    icon: "💉",
-    description: "Seringi, acid hialuronic, botox, produse estetică medicală",
-  },
-  {
-    name: "eBay",
-    type: "expense",
-    icon: "🛍️",
-    description: "Cumpărături produse de pe eBay",
-  },
-  {
-    name: "AliExpress",
-    type: "expense",
-    icon: "📦",
-    description: "Cumpărături produse de pe AliExpress",
-  },
-  {
-    name: "Gunoi Medical",
-    type: "expense",
-    icon: "🧹",
-    description: "Colectare deșeuri medicale/sanitare salon",
-  },
-  {
-    name: "Software & Apps",
-    type: "expense",
-    icon: "💻",
-    description: "Universeoftware, Google, Apple, subscripții business",
-  },
-  {
-    name: "Aplicație Booking",
-    type: "expense",
-    icon: "📅",
-    description: "Abonament aplicație de programări pentru salon",
-  },
-  {
-    name: "Abonamente Lunare",
-    type: "expense",
-    icon: "🔁",
-    description: "Abonamente lunare diverse: Netflix, Spotify, servicii online",
-  },
-  {
-    name: "Colectare Deșeuri",
-    type: "expense",
-    icon: "🗑️",
-    description: "Compania de colectare gunoi medical/salon",
-  },
-  {
-    name: "Contabilitate",
-    type: "expense",
-    icon: "📋",
-    description: "Plata anuală/lunară a contabilului",
-  },
-
-  // --- CHELTUIELI PERSONALE / GOSPODĂRIE ---
-  {
-    name: "Utilități",
-    type: "expense",
-    icon: "⚡",
-    description: "Council Tax, gaz, electric, apă",
-  },
-  {
-    name: "Telefon & Mobile",
+    name: "Phone & Internet",
     type: "expense",
     icon: "📱",
-    description: "GiffGaff, abonament mobil lunar",
+    description: "Business mobile phone, broadband, internet costs",
   },
   {
-    name: "Transport",
+    name: "Travel & Transport",
     type: "expense",
     icon: "🚗",
-    description: "Benzină, taxi, Uber, metrou, parcări",
+    description: "Business mileage, fuel, public transport, parking, taxis",
   },
   {
-    name: "Mâncare & Băuturi",
+    name: "Meals & Subsistence",
     type: "expense",
     icon: "🍽️",
-    description: "Supermarket, restaurante, cafenele",
+    description: "Business meals, subsistence while travelling for work",
   },
   {
-    name: "Sănătate",
+    name: "Health & Wellbeing",
     type: "expense",
     icon: "🏥",
-    description: "Medicamente, consultații, analize medicale",
+    description: "Business-related health costs, medical supplies",
   },
   {
-    name: "Farmacie",
+    name: "Marketing & Advertising",
     type: "expense",
-    icon: "💊",
-    description: "Medicamente, suplimente, produse farmaceutice",
+    icon: "📢",
+    description: "Website, social media ads, flyers, business cards, directories",
   },
   {
-    name: "Educație",
+    name: "Training & Education",
     type: "expense",
-    icon: "📚",
-    description: "Cursuri, cărți, formare profesională",
+    icon: "🎓",
+    description: "Courses, conferences, seminars, professional development",
   },
   {
-    name: "Cash",
+    name: "Professional Services",
     type: "expense",
-    icon: "💵",
-    description: "Retrageri ATM și plăți cash",
+    icon: "💼",
+    description: "Accountant, solicitor, consultant fees",
   },
   {
-    name: "Taxe și Impozite",
+    name: "Subscriptions",
+    type: "expense",
+    icon: "🔁",
+    description: "Software subscriptions, professional memberships, trade journals",
+  },
+  {
+    name: "Bank Charges & Fees",
+    type: "expense",
+    icon: "🏦",
+    description: "Bank account fees, Stripe/PayPal fees, credit card charges",
+  },
+  {
+    name: "Rent & Office",
+    type: "expense",
+    icon: "🏠",
+    description: "Business premises rent, co-working space, home office costs",
+  },
+  {
+    name: "Stock & Materials",
+    type: "expense",
+    icon: "🛍️",
+    description: "Products, raw materials, goods for resale (eBay, Amazon, AliExpress)",
+  },
+  {
+    name: "Taxes & Duties",
     type: "expense",
     icon: "🏛️",
-    description: "Impozite, taxe guvernamentale, National Insurance",
+    description: "National Insurance, VAT, council tax, other government duties",
   },
   {
-    name: "Alte Cheltuieli",
+    name: "Uncategorized",
     type: "expense",
-    icon: "📦",
-    description: "Cheltuieli diverse necategorizate",
+    icon: "❓",
+    description: "Expenses not yet assigned to a category",
   },
 
   // --- TRANSFERURI ---
   {
-    name: "Transfer Intern",
-    type: "transfer",
-    icon: "🔄",
-    description: "Transferuri între propriile conturi bancare",
-  },
-  {
-    name: "Transferuri",
+    name: "Internal Transfer",
     type: "transfer",
     icon: "↔️",
-    description: "Transferuri către alte persoane",
+    description: "Transfers between your own bank accounts",
   },
 ];
 

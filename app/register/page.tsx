@@ -18,7 +18,7 @@ export default function RegisterPage() {
     name: "",
     email: "",
     password: "",
-    nativeCurrency: "RON",
+    nativeCurrency: "GBP",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,6 +113,9 @@ export default function RegisterPage() {
                 onChange={(e) => setForm({ ...form, nativeCurrency: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
               >
+                <option value="GBP">GBP — British Pound £</option>
+                <option value="EUR">EUR — Euro €</option>
+                <option value="USD">USD — US Dollar $</option>
                 <option value="RON">RON — Leu românesc</option>
                 <option value="MDL">MDL — Leu moldovenesc</option>
               </select>
