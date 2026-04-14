@@ -316,9 +316,11 @@ export default function ReportsPage() {
                     outerRadius={110}
                     innerRadius={40}
                     dataKey="value"
-                    label={({ name, percent }: { name: string; percent?: number }) =>
-                      (percent ?? 0) > 0.04 ? `${name} ${((percent ?? 0) * 100).toFixed(0)}%` : ""
-                    }
+                    label={(props: Record<string, unknown>) => {
+                      const name = props.name as string;
+                      const percent = (props.percent as number) ?? 0;
+                      return percent > 0.04 ? `${name} ${(percent * 100).toFixed(0)}%` : "";
+                    }}
                     labelLine={true}
                   >
                     {pieData.map((_, index) => (
