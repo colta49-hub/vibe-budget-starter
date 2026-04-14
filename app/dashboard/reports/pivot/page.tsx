@@ -71,8 +71,12 @@ function getHeatStyle(value: number, mean: number): { bg: string; color: string;
 export default function PivotPage() {
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [fiscalYear, setFiscalYear] = useState<number>(getCurrentFiscalYear());
+  const [fiscalYear, setFiscalYear] = useState<number>(2025);
   const [showPct, setShowPct] = useState(false);
+
+  useEffect(() => {
+    setFiscalYear(getCurrentFiscalYear());
+  }, []);
 
   useEffect(() => {
     fetch("/api/transactions")
