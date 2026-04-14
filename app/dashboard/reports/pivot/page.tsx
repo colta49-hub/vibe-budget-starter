@@ -16,17 +16,31 @@ interface TransactionRow {
   categoryType: string | null;
 }
 
-type LuniSelector = 6 | 12 | 18 | 24;
+// Ani fiscali disponibili (2022 → 2030)
+const FISCAL_YEARS = Array.from({ length: 2030 - 2022 + 1 }, (_, i) => 2022 + i);
 
-// Generează ultimele N luni (YYYY-MM) în ordine cronologică
-function getLastNMonths(n: number): string[] {
+// Generează lunile unui an fiscal UK: 6 apr year → 5 apr (year+1)
+// Returnează ["year-04", "year-05", ..., "year-12", "(year+1)-01", ..., "(year+1)-03"]
+function getFiscalYearMonths(startYear: number): string[] {
   const months: string[] = [];
-  const now = new Date();
-  for (let i = n - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  // Apr → Dec din startYear
+  for (let m = 4; m <= 12; m++) {
+    months.push(`${startYear}-${pad(m)}`);
+  }
+  // Ian → Mar din startYear+1
+  for (let m = 1; m <= 3; m++) {
+    months.push(`${startYear + 1}-${pad(m)}`);
   }
   return months;
+}
+
+// An fiscal curent (cel mai recent cu date)
+function getCurrentFiscalYear(): number {
+  const now = new Date();
+  return now.getMonth() > 3 || (now.getMonth() === 3 && now.getDate() >= 6)
+    ? now.getFullYear() - 1
+    : now.getFullYear() - 2;
 }
 
 function formatMonthLabel(ym: string): string {
@@ -53,7 +67,7 @@ function getHeatStyle(value: number, mean: number): { bg: string; color: string;
 export default function PivotPage() {
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [luniCount, setLuniCount] = useState<LuniSelector>(6);
+  const [fiscalYear, setFiscalYear] = useState<number>(getCurrentFiscalYear());
   const [showPct, setShowPct] = useState(false);
 
   useEffect(() => {
@@ -64,7 +78,7 @@ export default function PivotPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const months = useMemo(() => getLastNMonths(luniCount), [luniCount]);
+  const months = useMemo(() => getFiscalYearMonths(fiscalYear), [fiscalYear]);
 
   // Construiește matricea: pivot[categorie][luna] = { cheltuieli, count }
   // Reținem și icon-ul per categorie
@@ -193,21 +207,18 @@ export default function PivotPage() {
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           {/* Selector luni */}
-          <div className="flex gap-1 bg-gray-100 rounded-full p-1">
-            {([6, 12, 18, 24] as LuniSelector[]).map((n) => (
-              <button
-                key={n}
-                onClick={() => setLuniCount(n)}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
-                style={
-                  luniCount === n
-                    ? { backgroundColor: "#0d9488", color: "#fff" }
-                    : { backgroundColor: "transparent", color: "#6b7280" }
-                }
-              >
-                {n}L
-              </button>
-            ))}
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-500 font-medium whitespace-nowrap">An fiscal:</label>
+            <select
+              value={fiscalYear}
+              onChange={(e) => setFiscalYear(Number(e.target.value))}
+              className="text-sm border border-gray-200 rounded-xl px-4 py-2 text-gray-700 focus:outline-none bg-white cursor-pointer font-semibold"
+              style={{ color: "#0d9488" }}
+            >
+              {FISCAL_YEARS.map((y) => (
+                <option key={y} value={y}>{y}/{y + 1}</option>
+              ))}
+            </select>
           </div>
 
           {/* Toggle % */}
