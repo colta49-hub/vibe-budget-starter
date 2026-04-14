@@ -853,27 +853,27 @@ export default function TransactionsPage() {
         </div>
       ) : (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden">
-          <div className="px-6 py-3 border-b border-gray-100 text-xs text-gray-400 flex items-center justify-between">
-            <span>
+          <div className="px-6 py-3 border-b border-gray-100 flex items-center justify-between">
+            <span className="text-xs text-gray-400">
               {filtered.length} tranzacț{filtered.length === 1 ? "ie" : "ii"}
               {hasFilters && transactions.length !== filtered.length && ` din ${transactions.length}`}
+              {selectedIds.size > 0 && ` · ${selectedIds.size} selectate`}
             </span>
-            {selectedIds.size > 0 && selectedIds.size < filtered.length && (
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setSelectedIds(new Set(filtered.map((t) => t.id)))}
-                className="text-teal-600 hover:text-teal-700 font-medium underline"
+                className="text-xs text-teal-600 hover:text-teal-700 font-medium transition-colors"
               >
                 Selectează toate {filtered.length}
               </button>
-            )}
-            {selectedIds.size === filtered.length && filtered.length > 0 && (
+              <span className="text-gray-200">|</span>
               <button
                 onClick={() => setSelectedIds(new Set())}
-                className="text-gray-500 hover:text-gray-700 font-medium underline"
+                className="text-xs text-gray-400 hover:text-gray-600 font-medium transition-colors"
               >
                 Deselectează toate
               </button>
-            )}
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
