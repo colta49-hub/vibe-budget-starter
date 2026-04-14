@@ -228,7 +228,17 @@ export default function TransactionsPage() {
       t.amount.toFixed(2),
       t.currency,
     ]);
-    const csv = [header, ...rows].map((r) => r.join(",")).join("\n");
+    const totalVenituri = filtered.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
+    const totalCheltuieli = filtered.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+    const soldNet = totalVenituri - totalCheltuieli;
+    const summary = [
+      [],
+      ["SUMAR", "", "", "", "", ""],
+      ["Total venituri", "", "", "", totalVenituri.toFixed(2), "GBP"],
+      ["Total cheltuieli", "", "", "", `-${totalCheltuieli.toFixed(2)}`, "GBP"],
+      ["Sold net", "", "", "", soldNet.toFixed(2), "GBP"],
+    ];
+    const csv = [header, ...rows, ...summary].map((r) => r.join(",")).join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
