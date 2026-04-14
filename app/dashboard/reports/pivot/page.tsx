@@ -57,10 +57,6 @@ function formatMonthLabel(ym: string): string {
   return `${MONTHS[parseInt(month) - 1]} ${year}`;
 }
 
-function fmt(value: number): string {
-  return `£${Math.round(Math.abs(value)).toLocaleString()}`;
-}
-
 // Color coding bazat pe medie — 5 niveluri
 function getHeatStyle(value: number, mean: number): { bg: string; color: string; label: string } {
   if (value === 0) return { bg: "transparent", color: "#d1d5db", label: "none" };
