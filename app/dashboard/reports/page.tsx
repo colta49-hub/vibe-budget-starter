@@ -27,7 +27,7 @@ interface Bank {
   color: string | null;
 }
 
-type Period = "month" | "3months" | "6months" | "12months" | "all";
+type Period = "month" | "3months" | "6months" | "all" | `fiscal-${number}`;
 
 const COLORS = [
   "#0d9488", "#f97316", "#6366f1", "#ec4899", "#eab308",
@@ -35,11 +35,13 @@ const COLORS = [
   "#f59e0b", "#10b981",
 ];
 
+// Ani fiscali UK disponibili (2022/2023 → 2025/2026)
+const FISCAL_YEARS = Array.from({ length: 2030 - 2022 + 1 }, (_, i) => 2022 + i);
+
 const PERIOD_OPTIONS: { value: Period; label: string }[] = [
   { value: "month", label: "Luna curentă" },
   { value: "3months", label: "Ultimele 3 luni" },
   { value: "6months", label: "Ultimele 6 luni" },
-  { value: "12months", label: "Ultimul an" },
   { value: "all", label: "Tot" },
 ];
 
@@ -65,19 +67,10 @@ function getDateRange(period: Period): { startDate: string; endDate: string } {
     return { startDate: start, endDate: "9999-12-31" };
   }
 
-  if (period === "12months") {
-    // An fiscal UK: 6 apr → 5 apr următor
-    // Găsim cel mai recent an fiscal COMPLET sau în curs cu date
-    // Dacă suntem după 6 apr curent: anul fiscal e (year-1)-04-06 → year-04-05
-    // Dacă suntem înainte de 6 apr: anul fiscal e (year-2)-04-06 → (year-1)-04-05
-    // Logică: vrem întotdeauna anul fiscal care a ÎNCEPUT cel mai recent (cu 6 apr în trecut)
-    const fiscalStartYear = now.getMonth() > 3 || (now.getMonth() === 3 && now.getDate() >= 6)
-      ? now.getFullYear() - 1
-      : now.getFullYear() - 2;
-    return {
-      startDate: `${fiscalStartYear}-04-06`,
-      endDate: `${fiscalStartYear + 1}-04-05`,
-    };
+  if (period.startsWith("fiscal-")) {
+    // An fiscal UK: fiscal-2025 = 2025-04-06 → 2026-04-05
+    const y = Number(period.replace("fiscal-", ""));
+    return { startDate: `${y}-04-06`, endDate: `${y + 1}-04-05` };
   }
 
   const months = period === "3months" ? 3 : 6;
@@ -146,7 +139,7 @@ export default function ReportsPage() {
   const [transactions, setTransactions] = useState<TransactionRow[]>([]);
   const [banks, setBanks] = useState<Bank[]>([]);
   const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState<Period>("month");
+  const [period, setPeriod] = useState<Period>("fiscal-2025");
   const [filterBank, setFilterBank] = useState<string>("");
   const [aiAnalysis, setAiAnalysis] = useState<string>("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -311,11 +304,17 @@ export default function ReportsPage() {
           value={period}
           onChange={(e) => setPeriod(e.target.value as Period)}
           className="text-sm border border-gray-200 rounded-xl px-4 py-2 text-gray-700 focus:outline-none focus:ring-2 bg-white cursor-pointer"
-          style={{ focusRingColor: "#0d9488" } as React.CSSProperties}
         >
-          {PERIOD_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
+          <optgroup label="Perioade">
+            {PERIOD_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </optgroup>
+          <optgroup label="An fiscal UK (6 apr → 5 apr)">
+            {FISCAL_YEARS.map((y) => (
+              <option key={y} value={`fiscal-${y}`}>{y}/{y + 1}</option>
+            ))}
+          </optgroup>
         </select>
       </div>
 
