@@ -316,8 +316,8 @@ export default function ReportsPage() {
                     outerRadius={110}
                     innerRadius={40}
                     dataKey="value"
-                    label={({ name, percent }) =>
-                      percent > 0.04 ? `${name} ${(percent * 100).toFixed(0)}%` : ""
+                    label={({ name, percent }: { name: string; percent?: number }) =>
+                      (percent ?? 0) > 0.04 ? `${name} ${((percent ?? 0) * 100).toFixed(0)}%` : ""
                     }
                     labelLine={true}
                   >
