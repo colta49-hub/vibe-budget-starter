@@ -67,14 +67,16 @@ function getDateRange(period: Period): { startDate: string; endDate: string } {
 
   if (period === "12months") {
     // An fiscal UK: 6 apr → 5 apr următor
-    // Dacă suntem după 6 apr, anul fiscal curent e year-04-06 → (year+1)-04-05
-    // Dacă suntem înainte de 6 apr, anul fiscal curent e (year-1)-04-06 → year-04-05
-    const year = now.getMonth() > 3 || (now.getMonth() === 3 && now.getDate() >= 6)
-      ? now.getFullYear()
-      : now.getFullYear() - 1;
+    // Găsim cel mai recent an fiscal COMPLET sau în curs cu date
+    // Dacă suntem după 6 apr curent: anul fiscal e (year-1)-04-06 → year-04-05
+    // Dacă suntem înainte de 6 apr: anul fiscal e (year-2)-04-06 → (year-1)-04-05
+    // Logică: vrem întotdeauna anul fiscal care a ÎNCEPUT cel mai recent (cu 6 apr în trecut)
+    const fiscalStartYear = now.getMonth() > 3 || (now.getMonth() === 3 && now.getDate() >= 6)
+      ? now.getFullYear() - 1
+      : now.getFullYear() - 2;
     return {
-      startDate: `${year}-04-06`,
-      endDate: `${year + 1}-04-05`,
+      startDate: `${fiscalStartYear}-04-06`,
+      endDate: `${fiscalStartYear + 1}-04-05`,
     };
   }
 
