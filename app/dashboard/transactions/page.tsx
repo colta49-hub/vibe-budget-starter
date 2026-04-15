@@ -69,8 +69,6 @@ export default function TransactionsPage() {
   const [filterCategory, setFilterCategory] = useState("");
   const [filterDateFrom, setFilterDateFrom] = useState("");
   const [filterDateTo, setFilterDateTo] = useState("");
-  const [dateFromInputType, setDateFromInputType] = useState<"text" | "date">("text");
-  const [dateToInputType, setDateToInputType] = useState<"text" | "date">("text");
   const [filterResetKey, setFilterResetKey] = useState(0);
   const [fiscalYearSelected, setFiscalYearSelected] = useState("");
 
@@ -283,13 +281,9 @@ export default function TransactionsPage() {
       const y = Number(year);
       setFilterDateFrom(`${y}-04-06`);
       setFilterDateTo(`${y + 1}-04-05`);
-      setDateFromInputType("date");
-      setDateToInputType("date");
     } else {
       setFilterDateFrom("");
       setFilterDateTo("");
-      setDateFromInputType("text");
-      setDateToInputType("text");
     }
   };
 
@@ -497,7 +491,7 @@ export default function TransactionsPage() {
               className="border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
             <button
-              onClick={() => { setSearch(""); setFilterBank(""); setFilterCategory(""); setFilterDateFrom(""); setFilterDateTo(""); setDateFromInputType("text"); setDateToInputType("text"); setFiscalYearSelected(""); setFilterResetKey((k) => k + 1); }}
+              onClick={() => { setSearch(""); setFilterBank(""); setFilterCategory(""); setFilterDateFrom(""); setFilterDateTo(""); setFiscalYearSelected(""); setFilterResetKey((k) => k + 1); }}
               className="border border-gray-300 hover:bg-gray-50 text-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
             >
               ✕ Resetează filtre
@@ -534,26 +528,20 @@ export default function TransactionsPage() {
               <label className="text-sm text-gray-500 shrink-0">De la</label>
               <input
                 key={`from-${filterResetKey}`}
-                type={dateFromInputType}
+                type="date"
                 value={filterDateFrom}
-                placeholder="dd.mm.yyyy"
-                onFocus={() => setDateFromInputType("date")}
-                onBlur={() => { if (!filterDateFrom) setDateFromInputType("text"); }}
                 onChange={(e) => setFilterDateFrom(e.target.value)}
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className={`flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 ${filterDateFrom ? "text-gray-900" : "text-transparent"}`}
               />
             </div>
             <div className="flex items-center gap-2">
               <label className="text-sm text-gray-500 shrink-0">Până la</label>
               <input
                 key={`to-${filterResetKey}`}
-                type={dateToInputType}
+                type="date"
                 value={filterDateTo}
-                placeholder="dd.mm.yyyy"
-                onFocus={() => setDateToInputType("date")}
-                onBlur={() => { if (!filterDateTo) setDateToInputType("text"); }}
                 onChange={(e) => setFilterDateTo(e.target.value)}
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className={`flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 ${filterDateTo ? "text-gray-900" : "text-transparent"}`}
               />
             </div>
           </div>
