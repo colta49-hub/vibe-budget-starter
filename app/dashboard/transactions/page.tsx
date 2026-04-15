@@ -523,7 +523,7 @@ export default function TransactionsPage() {
               key={`from-${filterResetKey}`}
               type={dateFromInputType}
               value={filterDateFrom}
-              placeholder="Alege data"
+              placeholder="dd.mm.yyyy"
               onFocus={() => setDateFromInputType("date")}
               onBlur={() => { if (!filterDateFrom) setDateFromInputType("text"); }}
               onChange={(e) => setFilterDateFrom(e.target.value)}
@@ -537,7 +537,7 @@ export default function TransactionsPage() {
               key={`to-${filterResetKey}`}
               type={dateToInputType}
               value={filterDateTo}
-              placeholder="Alege data"
+              placeholder="dd.mm.yyyy"
               onFocus={() => setDateToInputType("date")}
               onBlur={() => { if (!filterDateTo) setDateToInputType("text"); }}
               onChange={(e) => setFilterDateTo(e.target.value)}
