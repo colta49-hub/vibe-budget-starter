@@ -486,71 +486,77 @@ export default function TransactionsPage() {
           </select>
           <span className="text-xs text-gray-400">(6 Apr — 5 Apr)</span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Caută după descriere..."
-            className="border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-          />
-
-          <select
-            value={filterBank}
-            onChange={(e) => setFilterBank(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-          >
-            <option value="">Toate băncile</option>
-            {banks.map((b) => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
-
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-          >
-            <option value="">Toate categoriile</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
-            ))}
-          </select>
-
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-500 shrink-0">De la</label>
+        <div className="flex flex-col gap-3">
+          {/* Rând 1: Caută + Resetează */}
+          <div className="grid grid-cols-2 gap-4">
             <input
-              key={`from-${filterResetKey}`}
-              type={dateFromInputType}
-              value={filterDateFrom}
-              placeholder="dd.mm.yyyy"
-              onFocus={() => setDateFromInputType("date")}
-              onBlur={() => { if (!filterDateFrom) setDateFromInputType("text"); }}
-              onChange={(e) => setFilterDateFrom(e.target.value)}
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Caută după descriere..."
+              className="border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
+            <button
+              onClick={() => { setSearch(""); setFilterBank(""); setFilterCategory(""); setFilterDateFrom(""); setFilterDateTo(""); setDateFromInputType("text"); setDateToInputType("text"); setFiscalYearSelected(""); setFilterResetKey((k) => k + 1); }}
+              className="border border-gray-300 hover:bg-gray-50 text-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+            >
+              ✕ Resetează filtre
+            </button>
           </div>
 
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-500 shrink-0">Până la</label>
-            <input
-              key={`to-${filterResetKey}`}
-              type={dateToInputType}
-              value={filterDateTo}
-              placeholder="dd.mm.yyyy"
-              onFocus={() => setDateToInputType("date")}
-              onBlur={() => { if (!filterDateTo) setDateToInputType("text"); }}
-              onChange={(e) => setFilterDateTo(e.target.value)}
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-            />
+          {/* Rând 2: Toate băncile + Toate categoriile */}
+          <div className="grid grid-cols-2 gap-4">
+            <select
+              value={filterBank}
+              onChange={(e) => setFilterBank(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <option value="">Toate băncile</option>
+              {banks.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <option value="">Toate categoriile</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+              ))}
+            </select>
           </div>
 
-          <button
-            onClick={() => { setSearch(""); setFilterCategory(""); setFilterDateFrom(""); setFilterDateTo(""); setDateFromInputType("text"); setDateToInputType("text"); setFiscalYearSelected(""); setFilterResetKey((k) => k + 1); }}
-            className="border border-gray-300 hover:bg-gray-50 text-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            ✕ Resetează filtre
-          </button>
+          {/* Rând 3: De la + Până la */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-500 shrink-0">De la</label>
+              <input
+                key={`from-${filterResetKey}`}
+                type={dateFromInputType}
+                value={filterDateFrom}
+                placeholder="dd.mm.yyyy"
+                onFocus={() => setDateFromInputType("date")}
+                onBlur={() => { if (!filterDateFrom) setDateFromInputType("text"); }}
+                onChange={(e) => setFilterDateFrom(e.target.value)}
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-500 shrink-0">Până la</label>
+              <input
+                key={`to-${filterResetKey}`}
+                type={dateToInputType}
+                value={filterDateTo}
+                placeholder="dd.mm.yyyy"
+                onFocus={() => setDateToInputType("date")}
+                onBlur={() => { if (!filterDateTo) setDateToInputType("text"); }}
+                onChange={(e) => setFilterDateTo(e.target.value)}
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
